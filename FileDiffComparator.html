@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File Diff Comparator — FVU / TDS / PDF / Excel / Text</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f18;
+      --surface:   #13162b;
+      --surface2:  #1a1e35;
+      --surface3:  #21263f;
+      --border:    #2a2f50;
+      --text:      #e2e8f8;
+      --muted:     #6b7aad;
+      --accent:    #6c8ef5;
+      --accent2:   #a78bfa;
+      --add-bg:    #0b2318;
+      --add-fg:    #3effa2;
+      --add-hl:    #1a4733;
+      --del-bg:    #2a100e;
+      --del-fg:    #ff7b7b;
+      --del-hl:    #4f1e1e;
+      --eq-bg:     #13162b;
+      --ln-bg:     #0d0f18;
+      --ln-fg:     #3d4870;
+      --radius:    14px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ──── HEADER ──── */
+    header {
+      background: linear-gradient(120deg, #1a1e35 0%, #21263f 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6c8ef5 0%, #a78bfa 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+      box-shadow: 0 4px 16px #6c8ef540;
+    }
+    header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    header p  { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .supported-badges { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .badge {
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+    .b-fvu  { background:#1a3050; color:#7ac7ff; }
+    .b-pdf  { background:#3a1218; color:#ff9898; }
+    .b-xlsx { background:#0f2b1c; color:#5effa5; }
+    .b-txt  { background:#1f1a40; color:#c4b5fd; }
+    .b-csv  { background:#1a2a1a; color:#86efac; }
+
+    /* ──── MAIN LAYOUT ──── */
+    .container { max-width: 1440px; margin: 0 auto; padding: 28px 24px; }
+
+    /* ──── UPLOAD ZONES ──── */
+    .upload-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;
+    }
+    .drop-zone {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 30px 22px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+    }
+    .drop-zone:hover  { border-color: var(--accent); background: var(--surface2); box-shadow: 0 0 0 4px #6c8ef515; }
+    .drop-zone.drag-over { border-color: var(--accent2); background: #1d1a38; box-shadow: 0 0 0 4px #a78bfa25; }
+    .drop-zone.loaded { border-style: solid; border-color: #6c8ef540; }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .dz-icon  { font-size: 38px; margin-bottom: 10px; pointer-events: none; }
+    .dz-tag   { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+                color: var(--accent); margin-bottom: 6px; }
+    .dz-label { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .dz-hint  { font-size: 12px; color: var(--muted); line-height: 1.7; }
+    .dz-file-name { font-size: 14px; font-weight: 700; color: var(--text); margin-top: 12px; word-break: break-all; }
+    .dz-file-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .dz-check { display: inline-block; width: 22px; height: 22px; border-radius: 50%;
+                background: #1a4733; color: var(--add-fg); line-height: 22px; font-size: 13px;
+                margin-right: 6px; }
+
+    /* ──── CONTROLS ──── */
+    .controls {
+      display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 24px;
+    }
+    .btn {
+      padding: 10px 28px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; transition: all .18s ease; letter-spacing: .2px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6c8ef5 0%, #a78bfa 100%);
+      color: #fff; box-shadow: 0 4px 16px #6c8ef530;
+    }
+    .btn-primary:hover:not(:disabled) { opacity: .85; transform: translateY(-1px); box-shadow: 0 6px 20px #6c8ef540; }
+    .btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-ghost {
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--surface3); }
+    .btn-ghost.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ──── STATS BAR ──── */
+    .stats-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .stat { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+    .stat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .stat-dot.add { background: var(--add-fg); }
+    .stat-dot.del { background: var(--del-fg); }
+    .stat-dot.eq  { background: var(--muted); }
+    .stat strong  { font-size: 17px; font-weight: 800; }
+    .view-toggle  { margin-left: auto; display: flex; gap: 8px; }
+
+    /* ──── DIFF FRAME ──── */
+    .diff-frame {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .diff-head {
+      display: grid; grid-template-columns: 1fr 1fr;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    .diff-head.unified { grid-template-columns: 1fr; }
+    .diff-col-title {
+      padding: 10px 16px; font-size: 12.5px; font-weight: 700; color: var(--muted);
+      display: flex; align-items: center; gap: 8px; overflow: hidden;
+    }
+    .diff-col-title:first-child:not(:only-child) { border-right: 1px solid var(--border); }
+    .diff-col-title span.filename { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+
+    /* ──── SIDE BY SIDE ──── */
+    .sbs-scroll { overflow-x: auto; }
+    .sbs-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      min-height: 24px;
+      border-bottom: 1px solid #151829;
+    }
+    .sbs-row:last-child { border-bottom: none; }
+    .sbs-cell {
+      display: flex; align-items: flex-start;
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+      font-size: 12.5px; line-height: 22px;
+    }
+    .sbs-cell:first-child { border-right: 1px solid var(--border); }
+    .sbs-cell.add   { background: var(--add-bg); }
+    .sbs-cell.del   { background: var(--del-bg); }
+    .sbs-cell.eq    { background: var(--eq-bg); }
+    .sbs-cell.blank { background: #0b0d17; }
+
+    .ln {
+      color: var(--ln-fg); background: var(--ln-bg);
+      padding: 1px 10px; min-width: 50px; text-align: right;
+      user-select: none; font-size: 11px; flex-shrink: 0;
+      border-right: 1px solid #1a1e35;
+    }
+    .pfx {
+      padding: 1px 6px; width: 22px; text-align: center;
+      font-weight: 800; font-size: 14px; flex-shrink: 0;
+    }
+    .del .pfx { color: var(--del-fg); }
+    .add .pfx { color: var(--add-fg); }
+    .eq  .pfx { color: transparent; }
+    .line-txt {
+      padding: 1px 10px; flex: 1; white-space: pre-wrap; word-break: break-all;
+    }
+    /* char-level highlights */
+    ins.c { background: var(--add-hl); color: var(--add-fg); text-decoration: none; border-radius: 3px; padding: 0 1px; }
+    del.c { background: var(--del-hl); color: var(--del-fg); text-decoration: none; border-radius: 3px; padding: 0 1px; }
+
+    /* ──── UNIFIED ──── */
+    .uni-scroll { overflow-x: auto; }
+    .uni-row {
+      display: flex; align-items: flex-start;
+      border-bottom: 1px solid #151829;
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+      font-size: 12.5px; line-height: 22px;
+    }
+    .uni-row:last-child { border-bottom: none; }
+    .uni-row.add { background: var(--add-bg); }
+    .uni-row.del { background: var(--del-bg); }
+    .uni-row.eq  { background: var(--eq-bg); }
+    .u-ln { color: var(--ln-fg); background: var(--ln-bg); padding: 1px 10px; min-width: 50px; text-align: right; user-select: none; font-size: 11px; flex-shrink: 0; border-right: 1px solid #1a1e35; }
+    .u-pfx { padding: 1px 8px; width: 24px; text-align: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+    .add .u-pfx { color: var(--add-fg); }
+    .del .u-pfx { color: var(--del-fg); }
+    .eq  .u-pfx { color: var(--muted); }
+
+    /* ──── EMPTY STATE ──── */
+    .empty-state {
+      text-align: center; padding: 70px 20px; color: var(--muted);
+    }
+    .empty-state .icon { font-size: 56px; margin-bottom: 16px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ──── IDENTICAL BANNER ──── */
+    .identical {
+      text-align: center; padding: 52px 24px; color: var(--add-fg); font-weight: 700;
+    }
+    .identical .icon { font-size: 52px; margin-bottom: 14px; }
+    .identical p { font-size: 17px; }
+    .identical small { color: var(--muted); font-size: 13px; font-weight: 400; display: block; margin-top: 6px; }
+
+    /* ──── LOADING ──── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.65);
+      display: none; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .overlay.show { display: flex; }
+    .spinner-wrap { text-align: center; color: var(--text); }
+    .ring {
+      width: 52px; height: 52px; margin: 0 auto 14px;
+      border: 4px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ──── SCROLLBAR ──── */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    @media (max-width: 720px) {
+      .upload-grid { grid-template-columns: 1fr; }
+      .diff-head { grid-template-columns: 1fr; }
+      .sbs-row { grid-template-columns: 1fr; }
+      .sbs-cell:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+      .supported-badges { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ────────────────── HEADER ────────────────── -->
+<header>
+  <div class="logo">🔀</div>
+  <div>
+    <h1>File Diff Comparator</h1>
+    <p>Instantly compare two files and highlight every difference</p>
+  </div>
+  <div class="supported-badges">
+    <span class="badge b-fvu">.FVU</span>
+    <span class="badge b-fvu">.TDS</span>
+    <span class="badge b-pdf">.PDF</span>
+    <span class="badge b-xlsx">.XLSX</span>
+    <span class="badge b-csv">.CSV</span>
+    <span class="badge b-txt">.TXT</span>
+    <span class="badge b-txt">.JSON</span>
+    <span class="badge b-txt">.XML</span>
+  </div>
+</header>
+
+<!-- ────────────────── MAIN ────────────────── -->
+<div class="container">
+
+  <!-- Upload zones -->
+  <div class="upload-grid">
+    <div class="drop-zone" id="zone1"
+         ondragover="doDragOver(event,1)" ondragleave="doDragLeave(1)" ondrop="doDrop(event,1)">
+      <input type="file" id="f1" onchange="fileChosen(1)"
+             accept=".fvu,.tds,.txt,.csv,.pdf,.xlsx,.xls,.json,.xml,.log,.dat">
+      <div class="dz-icon">📂</div>
+      <div class="dz-tag">File 1 · Original</div>
+      <div class="dz-label">Click or drag file here</div>
+      <div class="dz-hint">.fvu &nbsp;·&nbsp; .tds &nbsp;·&nbsp; .pdf &nbsp;·&nbsp; .xlsx<br>.csv &nbsp;·&nbsp; .txt &nbsp;·&nbsp; .json &nbsp;·&nbsp; .xml</div>
+      <div id="f1name" style="display:none" class="dz-file-name"></div>
+      <div id="f1meta" style="display:none" class="dz-file-meta"></div>
+    </div>
+
+    <div class="drop-zone" id="zone2"
+         ondragover="doDragOver(event,2)" ondragleave="doDragLeave(2)" ondrop="doDrop(event,2)">
+      <input type="file" id="f2" onchange="fileChosen(2)"
+             accept=".fvu,.tds,.txt,.csv,.pdf,.xlsx,.xls,.json,.xml,.log,.dat">
+      <div class="dz-icon">📂</div>
+      <div class="dz-tag">File 2 · Modified</div>
+      <div class="dz-label">Click or drag file here</div>
+      <div class="dz-hint">.fvu &nbsp;·&nbsp; .tds &nbsp;·&nbsp; .csv &nbsp;·&nbsp; .xlsx<br>.pdf &nbsp;·&nbsp; .txt &nbsp;·&nbsp; .json &nbsp;·&nbsp; .xml</div>
+      <div id="f2name" style="display:none" class="dz-file-name"></div>
+      <div id="f2meta" style="display:none" class="dz-file-meta"></div>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="controls">
+    <button class="btn btn-primary" id="cmpBtn" onclick="doCompare()" disabled>⚡ Compare Files</button>
+    <button class="btn btn-ghost" onclick="doReset()">↺ &nbsp;Reset</button>
+  </div>
+
+  <!-- Results section -->
+  <div id="results" style="display:none">
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-dot add"></div>Lines Added: <strong id="s-add">0</strong></div>
+      <div class="stat"><div class="stat-dot del"></div>Lines Removed: <strong id="s-del">0</strong></div>
+      <div class="stat"><div class="stat-dot eq"></div>Unchanged: <strong id="s-eq">0</strong></div>
+      <div class="view-toggle">
+        <button class="btn btn-ghost active" id="vbtn-sbs" onclick="setView('sbs')">⇄ Side by Side</button>
+        <button class="btn btn-ghost"        id="vbtn-uni" onclick="setView('uni')">≡ Unified</button>
+      </div>
+    </div>
+    <div class="diff-frame" id="diffFrame"></div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" id="emptyState">
+    <div class="icon">🔍</div>
+    <p>Upload two files above, then click <strong>Compare Files</strong></p>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="overlay" id="loadOverlay">
+  <div class="spinner-wrap">
+    <div class="ring"></div>
+    <p>Reading &amp; comparing files…</p>
+  </div>
+</div>
+
+<!-- ────────────────── SCRIPT ────────────────── -->
+<script>
+  // ── PDF.js worker ───────────────────────────────────────────────
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  // ── State ───────────────────────────────────────────────────────
+  const files = [null, null];
+  let currentView = 'sbs';
+  let lastDiffs = null;
+
+  // ── Drag & Drop ─────────────────────────────────────────────────
+  function doDragOver(e, n) { e.preventDefault(); Z(n).classList.add('drag-over'); }
+  function doDragLeave(n)   { Z(n).classList.remove('drag-over'); }
+  function doDrop(e, n)     { e.preventDefault(); doDragLeave(n); const f = e.dataTransfer.files[0]; if (f) registerFile(n, f); }
+  function fileChosen(n)    { const f = document.getElementById('f'+n).files[0]; if (f) registerFile(n, f); }
+  function Z(n)             { return document.getElementById('zone'+n); }
+
+  function registerFile(n, file) {
+    files[n-1] = file;
+    Z(n).classList.add('loaded');
+    const nm = document.getElementById('f'+n+'name');
+    const mt = document.getElementById('f'+n+'meta');
+    nm.style.display = mt.style.display = 'block';
+    nm.innerHTML = '<span class="dz-check">✓</span>' + esc(file.name);
+    mt.textContent = fmtSize(file.size) + '  ·  ' + fmtType(file.name);
+    document.getElementById('cmpBtn').disabled = !(files[0] && files[1]);
+  }
+
+  function fmtSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    return (b/1048576).toFixed(2) + ' MB';
+  }
+  function fmtType(name) {
+    const e = name.split('.').pop().toLowerCase();
+    return ({fvu:'FVU File',tds:'TDS File',pdf:'PDF Document',xlsx:'Excel Workbook',
+             xls:'Excel 97-2003',csv:'CSV Spreadsheet',txt:'Plain Text',
+             json:'JSON File',xml:'XML File',log:'Log File',dat:'Data File'}[e] || e.toUpperCase()+' File');
+  }
+
+  // ── File parsers ─────────────────────────────────────────────────
+  async function parseFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'pdf')                return parsePDF(file);
+    if (['xlsx','xls'].includes(ext)) return parseXLSX(file);
+    return readText(file);
+  }
+
+  function readText(file) {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload  = e => res(e.target.result);
+      r.onerror = rej;
+      r.readAsText(file, 'UTF-8');
+    });
+  }
+
+  async function parsePDF(file) {
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let out = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page    = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      // Reconstruct lines using transform Y-coordinates
+      const items = content.items;
+      const lines = {};
+      items.forEach(item => {
+        const y = Math.round(item.transform[5]);
+        if (!lines[y]) lines[y] = [];
+        lines[y].push(item.str);
+      });
+      out += `\n───────── Page ${i} ─────────\n`;
+      Object.keys(lines).sort((a,b)=>b-a).forEach(y => {
+        out += lines[y].join(' ') + '\n';
+      });
+    }
+    return out.trim();
+  }
+
+  async function parseXLSX(file) {
+    const buf = await file.arrayBuffer();
+    const wb  = XLSX.read(buf, { type: 'array' });
+    let out = '';
+    wb.SheetNames.forEach(name => {
+      out += `\n════════════════════════════\n  Sheet: ${name}\n════════════════════════════\n`;
+      const ws  = wb.Sheets[name];
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      out += csv + '\n';
+    });
+    return out.trim();
+  }
+
+  // ── Diff engine ──────────────────────────────────────────────────
+  function lineDiff(t1, t2) {
+    const dmp = new diff_match_patch();
+    const a   = dmp.diff_linesToChars_(t1, t2);
+    const d   = dmp.diff_main(a.chars1, a.chars2, false);
+    dmp.diff_charsToLines_(d, a.lineArray);
+    return d;
+  }
+
+  function charDiff(s1, s2) {
+    const dmp = new diff_match_patch();
+    const d   = dmp.diff_main(s1, s2);
+    dmp.diff_cleanupSemantic(d);
+    return d;
+  }
+
+  function countLines(text) {
+    if (!text) return 0;
+    const l = text.split('\n');
+    return (l[l.length-1] === '') ? l.length-1 : l.length;
+  }
+
+  // ── Compare ──────────────────────────────────────────────────────
+  async function doCompare() {
+    if (!files[0] || !files[1]) return;
+    loading(true);
+    try {
+      const [t1, t2] = await Promise.all([parseFile(files[0]), parseFile(files[1])]);
+      const diffs = lineDiff(t1, t2);
+      lastDiffs = diffs;
+
+      let adds=0, dels=0, eqs=0;
+      diffs.forEach(([op, txt]) => {
+        const n = countLines(txt);
+        if (op===1)  adds += n;
+        else if (op===-1) dels += n;
+        else eqs += n;
+      });
+      document.getElementById('s-add').textContent = adds;
+      document.getElementById('s-del').textContent = dels;
+      document.getElementById('s-eq').textContent  = eqs;
+
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('results').style.display    = 'block';
+      renderDiff(diffs);
+    } catch(err) {
+      alert('Could not parse file:\n' + err.message);
+      console.error(err);
+    } finally {
+      loading(false);
+    }
+  }
+
+  function setView(v) {
+    currentView = v;
+    document.getElementById('vbtn-sbs').classList.toggle('active', v==='sbs');
+    document.getElementById('vbtn-uni').classList.toggle('active', v==='uni');
+    if (lastDiffs) renderDiff(lastDiffs);
+  }
+
+  function renderDiff(diffs) {
+    const frame = document.getElementById('diffFrame');
+    const hasChanges = diffs.some(([op])=> op !== 0);
+    if (!hasChanges) {
+      frame.innerHTML = `<div class="identical"><div class="icon">✅</div>
+        <p>Files are identical — no differences found!</p>
+        <small>Both files have exactly the same content.</small></div>`;
+      return;
+    }
+    currentView === 'sbs' ? renderSBS(diffs, frame) : renderUni(diffs, frame);
+  }
+
+  // Group consecutive del+ins into "change" blocks for char-level diff
+  function groupBlocks(diffs) {
+    const out = []; let i = 0;
+    while (i < diffs.length) {
+      const [op, txt] = diffs[i];
+      if (op === 0) {
+        out.push({ k: 'eq', lines: splitL(txt) }); i++;
+      } else if (op === -1) {
+        if (i+1 < diffs.length && diffs[i+1][0] === 1) {
+          out.push({ k: 'chg', dels: splitL(txt), ins: splitL(diffs[i+1][1]) }); i += 2;
+        } else {
+          out.push({ k: 'del', lines: splitL(txt) }); i++;
+        }
+      } else {
+        out.push({ k: 'ins', lines: splitL(txt) }); i++;
+      }
+    }
+    return out;
+  }
+
+  function splitL(txt) {
+    if (!txt) return [];
+    const a = txt.split('\n');
+    if (a[a.length-1] === '') a.pop();
+    return a;
+  }
+
+  // ── Side-by-side renderer ────────────────────────────────────────
+  function renderSBS(diffs, frame) {
+    const n1 = files[0]?.name || 'File 1';
+    const n2 = files[1]?.name || 'File 2';
+    let html = `
+      <div class="diff-head">
+        <div class="diff-col-title">
+          <span style="color:var(--del-fg)">●</span>
+          <span class="filename">${esc(n1)}</span>
+          <span style="font-size:11px;background:#3a1218;color:var(--del-fg);padding:2px 8px;border-radius:20px">Original</span>
+        </div>
+        <div class="diff-col-title">
+          <span style="color:var(--add-fg)">●</span>
+          <span class="filename">${esc(n2)}</span>
+          <span style="font-size:11px;background:#0b2318;color:var(--add-fg);padding:2px 8px;border-radius:20px">Modified</span>
+        </div>
+      </div>
+      <div class="sbs-scroll">`;
+
+    const blocks = groupBlocks(diffs);
+    let l1 = 1, l2 = 1;
+
+    blocks.forEach(b => {
+      if (b.k === 'eq') {
+        b.lines.forEach(line => {
+          html += sbsRow(
+            `<div class="sbs-cell eq">${lnS(l1++)}<span class="pfx"> </span><span class="line-txt">${esc(line)}</span></div>`,
+            `<div class="sbs-cell eq">${lnS(l2++)}<span class="pfx"> </span><span class="line-txt">${esc(line)}</span></div>`
+          );
+        });
+      } else if (b.k === 'del') {
+        b.lines.forEach(line => {
+          html += sbsRow(
+            `<div class="sbs-cell del">${lnS(l1++)}<span class="pfx">−</span><span class="line-txt">${esc(line)}</span></div>`,
+            `<div class="sbs-cell blank">${lnS('')}<span class="pfx"> </span><span class="line-txt"></span></div>`
+          );
+        });
+      } else if (b.k === 'ins') {
+        b.lines.forEach(line => {
+          html += sbsRow(
+            `<div class="sbs-cell blank">${lnS('')}<span class="pfx"> </span><span class="line-txt"></span></div>`,
+            `<div class="sbs-cell add">${lnS(l2++)}<span class="pfx">+</span><span class="line-txt">${esc(line)}</span></div>`
+          );
+        });
+      } else { // chg — char-level diff
+        const maxLen = Math.max(b.dels.length, b.ins.length);
+        for (let i = 0; i < maxLen; i++) {
+          const dl = i < b.dels.length ? b.dels[i] : null;
+          const il = i < b.ins.length  ? b.ins[i]  : null;
+
+          let lCell, rCell;
+          if (dl !== null && il !== null) {
+            const cd = charDiff(dl, il);
+            lCell = `<div class="sbs-cell del">${lnS(l1++)}<span class="pfx">−</span><span class="line-txt">${renderChars(cd,'del')}</span></div>`;
+            rCell = `<div class="sbs-cell add">${lnS(l2++)}<span class="pfx">+</span><span class="line-txt">${renderChars(cd,'add')}</span></div>`;
+          } else if (dl !== null) {
+            lCell = `<div class="sbs-cell del">${lnS(l1++)}<span class="pfx">−</span><span class="line-txt">${esc(dl)}</span></div>`;
+            rCell = `<div class="sbs-cell blank">${lnS('')}<span class="pfx"> </span><span class="line-txt"></span></div>`;
+          } else {
+            lCell = `<div class="sbs-cell blank">${lnS('')}<span class="pfx"> </span><span class="line-txt"></span></div>`;
+            rCell = `<div class="sbs-cell add">${lnS(l2++)}<span class="pfx">+</span><span class="line-txt">${esc(il)}</span></div>`;
+          }
+          html += sbsRow(lCell, rCell);
+        }
+      }
+    });
+
+    html += '</div>';
+    frame.innerHTML = html;
+  }
+
+  function sbsRow(l, r) { return `<div class="sbs-row">${l}${r}</div>`; }
+  function lnS(n)        { return `<span class="ln">${n}</span>`; }
+
+  // ── Unified renderer ─────────────────────────────────────────────
+  function renderUni(diffs, frame) {
+    const n1 = files[0]?.name || 'File 1';
+    const n2 = files[1]?.name || 'File 2';
+    let html = `
+      <div class="diff-head unified">
+        <div class="diff-col-title" style="border-right:none">
+          ≡ Unified Diff
+          <span style="color:var(--del-fg);margin-left:10px">− ${esc(n1)}</span>
+          <span style="color:var(--add-fg);margin-left:12px">+ ${esc(n2)}</span>
+        </div>
+      </div>
+      <div class="uni-scroll">`;
+
+    const blocks = groupBlocks(diffs);
+    let l1 = 1, l2 = 1;
+
+    blocks.forEach(b => {
+      if (b.k === 'eq') {
+        b.lines.forEach(line => {
+          html += `<div class="uni-row eq"><span class="u-ln">${l1++}</span><span class="u-ln">${l2++}</span><span class="u-pfx"> </span><span class="line-txt">${esc(line)}</span></div>`;
+        });
+      } else if (b.k === 'del') {
+        b.lines.forEach(line => {
+          html += `<div class="uni-row del"><span class="u-ln">${l1++}</span><span class="u-ln"> </span><span class="u-pfx">−</span><span class="line-txt">${esc(line)}</span></div>`;
+        });
+      } else if (b.k === 'ins') {
+        b.lines.forEach(line => {
+          html += `<div class="uni-row add"><span class="u-ln"> </span><span class="u-ln">${l2++}</span><span class="u-pfx">+</span><span class="line-txt">${esc(line)}</span></div>`;
+        });
+      } else { // chg
+        b.dels.forEach(line => {
+          html += `<div class="uni-row del"><span class="u-ln">${l1++}</span><span class="u-ln"> </span><span class="u-pfx">−</span><span class="line-txt">${esc(line)}</span></div>`;
+        });
+        b.ins.forEach(line => {
+          html += `<div class="uni-row add"><span class="u-ln"> </span><span class="u-ln">${l2++}</span><span class="u-pfx">+</span><span class="line-txt">${esc(line)}</span></div>`;
+        });
+      }
+    });
+
+    html += '</div>';
+    frame.innerHTML = html;
+  }
+
+  // ── Char-diff renderer ───────────────────────────────────────────
+  function renderChars(cd, side) {
+    let h = '';
+    cd.forEach(([op, txt]) => {
+      const e = esc(txt);
+      if (op === 0)                   h += e;
+      else if (op === -1 && side==='del') h += `<del class="c">${e}</del>`;
+      else if (op ===  1 && side==='add') h += `<ins class="c">${e}</ins>`;
+      // skip opposite-side-only chars
+    });
+    return h;
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function loading(on) { document.getElementById('loadOverlay').classList.toggle('show', on); }
+
+  function doReset() {
+    files[0] = files[1] = null; lastDiffs = null;
+    for (let n=1; n<=2; n++) {
+      document.getElementById('f'+n).value = '';
+      ['name','meta'].forEach(k => { document.getElementById('f'+n+k).style.display='none'; });
+      Z(n).classList.remove('loaded','drag-over');
+    }
+    document.getElementById('cmpBtn').disabled = true;
+    document.getElementById('results').style.display    = 'none';
+    document.getElementById('emptyState').style.display = 'block';
+  }
+</script>
+</body>
+</html>

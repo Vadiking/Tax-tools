@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Form 26AS → Excel Converter</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--brand:#1a56db;--brand-lt:#eff6ff;--brand-dk:#1e40af;--success:#0e9f6e;--warn:#d97706;--danger:#dc2626;--bg:#f1f5f9;--surface:#ffffff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--r:10px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+header{background:linear-gradient(135deg,#1a56db,#1e3a8a);color:#fff;padding:18px 32px;display:flex;align-items:center;gap:14px;box-shadow:0 3px 12px rgba(0,0,0,.25)}
+header h1{font-size:1.35rem;font-weight:700;letter-spacing:-.3px}
+header p{font-size:.8rem;opacity:.75;margin-top:3px}
+
+/* LAYOUT */
+main{max-width:1300px;margin:0 auto;padding:26px 18px 60px}
+
+/* STEP BAR */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:24px;flex-wrap:wrap;gap:4px}
+.step{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r);font-size:.8rem;font-weight:600;color:var(--muted);background:var(--surface);border:1.5px solid var(--border)}
+.step .n{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700}
+.step.active{color:var(--brand);border-color:var(--brand);background:var(--brand-lt)}
+.step.active .n{background:var(--brand);color:#fff}
+.step.done{color:var(--success);border-color:var(--success);background:#f0fdf4}
+.step.done .n{background:var(--success);color:#fff}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.card-title{font-size:.95rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.chip{background:var(--brand-lt);color:var(--brand);font-size:.68rem;padding:2px 8px;border-radius:99px;font-weight:700}
+
+/* UPLOAD ZONE */
+#dz{border:2.5px dashed #93c5fd;border-radius:var(--r);padding:50px 24px;text-align:center;cursor:pointer;transition:.2s;background:#f0f9ff;user-select:none}
+#dz:hover,#dz.over{border-color:var(--brand);background:var(--brand-lt)}
+#dz .icon{font-size:3rem;margin-bottom:10px}
+#dz .main{font-weight:700;font-size:1.05rem;color:#1d4ed8;margin-bottom:4px}
+#dz .sub{font-size:.8rem;color:var(--muted)}
+#fi{display:none}
+
+/* FILE INFO */
+#file-bar{display:none;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:var(--r);padding:11px 16px;margin-top:14px}
+#file-bar .fn{font-weight:600;font-size:.88rem}
+#file-bar .fs{font-size:.78rem;color:var(--muted)}
+
+/* PROGRESS */
+#prog-wrap{display:none;margin-top:14px}
+#prog-bg{height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+#prog-bar{height:100%;width:0%;background:var(--brand);border-radius:99px;transition:width .12s}
+#prog-lbl{font-size:.75rem;color:var(--muted);margin-top:4px}
+
+/* ALERTS */
+.alert{padding:11px 15px;border-radius:var(--r);font-size:.83rem;display:none;margin-top:10px}
+.alert-err{background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c}
+.alert-info{background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r);font-size:.85rem;font-weight:600;cursor:pointer;border:none;transition:.15s}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-dk)}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#057a55}
+.btn-outline{background:transparent;color:var(--brand);border:1.5px solid var(--brand)}
+.btn-outline:hover{background:var(--brand-lt)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* TAXPAYER GRID */
+#info-card{display:none}
+.ig{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.ig-item{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:9px 13px}
+.ig-label{font-size:.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.ig-val{font-size:.88rem;font-weight:600;margin-top:2px}
+
+/* TABS */
+#preview{display:none}
+.tab-bar{display:flex;gap:3px;overflow-x:auto;border-bottom:2px solid var(--border);margin-bottom:16px;padding-bottom:0}
+.tab-btn{padding:8px 15px;font-size:.8rem;font-weight:600;color:var(--muted);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;border-radius:6px 6px 0 0;transition:.15s}
+.tab-btn:hover{color:var(--brand);background:var(--brand-lt)}
+.tab-btn.active{color:var(--brand);border-bottom-color:var(--brand);background:var(--brand-lt)}
+.tab-btn .cnt{background:var(--brand);color:#fff;font-size:.65rem;padding:1px 5px;border-radius:99px;margin-left:4px}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* SECTION WITHIN PANE */
+.sec-head{font-size:.82rem;font-weight:700;color:var(--brand);padding:6px 10px;background:var(--brand-lt);border-left:3px solid var(--brand);border-radius:4px;margin:14px 0 10px}
+.sec-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.s-chip{background:#f8fafc;border:1px solid var(--border);border-radius:7px;padding:6px 12px}
+.s-chip .sl{font-size:.67rem;color:var(--muted);font-weight:700;text-transform:uppercase}
+.s-chip .sv{font-size:.88rem;font-weight:700}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;max-height:420px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:.76rem;min-width:500px}
+thead{position:sticky;top:0;z-index:2}
+thead th{background:#1e3a8a;color:#fff;padding:8px 11px;text-align:left;font-weight:600;white-space:nowrap;border-right:1px solid rgba(255,255,255,.12)}
+tbody tr:nth-child(even){background:#f8fafc}
+tbody tr:hover{background:var(--brand-lt)}
+tbody td{padding:6px 11px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap}
+.no-data{text-align:center;padding:28px;color:var(--muted);font-size:.83rem;font-style:italic}
+.more-rows{text-align:center;padding:8px;background:#fffbeb;border-radius:6px;font-size:.78rem;color:var(--warn);margin-bottom:4px}
+
+/* ACTIONS */
+#actions{display:none}
+.act-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.sum-txt{font-size:.8rem;color:var(--muted);margin-left:auto}
+
+/* FOOTER */
+footer{text-align:center;font-size:.73rem;color:var(--muted);padding:22px;border-top:1px solid var(--border)}
+
+@media(max-width:600px){header{padding:14px};main{padding:14px 10px 40px}.btn{padding:8px 13px;font-size:.8rem}}
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+    <rect width="38" height="38" rx="8" fill="rgba(255,255,255,.15)"/>
+    <path d="M9 10h20M9 14h14M9 18h20M9 22h11M9 26h15" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+    <rect x="22" y="18" width="12" height="12" rx="2" fill="#60a5fa"/>
+    <path d="M25 24h6M25 27h4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <div>
+    <h1>Form 26AS → Excel Converter</h1>
+    <p>Annual Tax Statement · TDS / TCS / 15G-15H / Refund / Defaults · Offline, nothing leaves your browser</p>
+  </div>
+</header>
+
+<main>
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="s1"><span class="n">1</span>Upload File</div>
+    <div class="step" id="s2"><span class="n">2</span>Parse &amp; Preview</div>
+    <div class="step" id="s3"><span class="n">3</span>Download Excel</div>
+  </div>
+
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Upload 26AS Text File <span class="chip">.txt</span>
+    </div>
+    <div id="dz" onclick="document.getElementById('fi').click()">
+      <input type="file" id="fi" accept=".txt,.TXT"/>
+      <div class="icon">📄</div>
+      <div class="main">Drag &amp; drop your 26AS .txt file here</div>
+      <div class="sub">or click to browse · Downloaded from Income Tax portal / TRACES</div>
+    </div>
+    <div id="file-bar">
+      <span style="font-size:1.4rem">✅</span>
+      <div><div class="fn" id="f-name"></div><div class="fs" id="f-size"></div></div>
+      <button class="btn btn-outline" style="margin-left:auto;padding:6px 12px;font-size:.78rem" onclick="resetAll()">✕ Clear</button>
+    </div>
+    <div id="prog-wrap">
+      <div id="prog-bg"><div id="prog-bar"></div></div>
+      <div id="prog-lbl">Parsing…</div>
+    </div>
+    <div id="err" class="alert alert-err"></div>
+    <div id="info-msg" class="alert alert-info"></div>
+  </div>
+
+  <!-- Taxpayer Info -->
+  <div class="card" id="info-card">
+    <div class="card-title">ℹ️ Taxpayer Details</div>
+    <div class="ig" id="ig"></div>
+  </div>
+
+  <!-- Preview -->
+  <div class="card" id="preview">
+    <div class="card-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Data Preview
+    </div>
+    <div class="tab-bar" id="tab-bar"></div>
+    <div id="tab-content"></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="card" id="actions">
+    <div class="act-row">
+      <button class="btn btn-success" id="dl-btn" onclick="doDownload()">
+        ⬇️ Download Excel (.xlsx)
+      </button>
+      <button class="btn btn-outline" onclick="resetAll()">🔄 Convert Another</button>
+      <span class="sum-txt" id="sum-txt"></span>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Form 26AS Text → Excel Converter &nbsp;·&nbsp; 100% offline — your file never leaves your browser &nbsp;·&nbsp; Excel powered by SheetJS
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   GLOBAL STATE
+═══════════════════════════════════════════════════════════ */
+let STATE = { meta: {}, parts: [] };
+
+/* ═══════════════════════════════════════════════════════════
+   DRAG & DROP
+═══════════════════════════════════════════════════════════ */
+const dz = document.getElementById('dz');
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', ()  => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f) loadFile(f);
+});
+document.getElementById('fi').addEventListener('change', e => {
+  if (e.target.files[0]) loadFile(e.target.files[0]);
+});
+
+/* ═══════════════════════════════════════════════════════════
+   FILE LOAD
+═══════════════════════════════════════════════════════════ */
+function loadFile(file) {
+  resetUI();
+  document.getElementById('f-name').textContent = file.name;
+  document.getElementById('f-size').textContent = fmtSz(file.size);
+  document.getElementById('file-bar').style.display = 'flex';
+  showProg(5, 'Reading file…');
+  setStep(2);
+
+  const reader = new FileReader();
+  reader.onprogress = e => { if (e.lengthComputable) showProg(5 + 30 * e.loaded / e.total, 'Reading…'); };
+  reader.onerror   = () => showErr('Could not read the file.');
+  reader.onload    = e => {
+    showProg(40, 'Parsing 26AS format…');
+    setTimeout(() => {
+      try {
+        const result = parse26AS(e.target.result);
+        STATE = result;
+        showProg(80, 'Building preview…');
+        setTimeout(() => {
+          renderAll();
+          showProg(100, 'Done!');
+          setStep(3);
+          setTimeout(() => hideProg(), 700);
+        }, 10);
+      } catch(ex) {
+        hideProg();
+        showErr('Parse error: ' + ex.message);
+        setStep(1);
+      }
+    }, 10);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ████  PARSER  ████
+   Format: ^ delimited
+   Part headers: lines like   ^PART-I - Details...^
+   Main col header: Sr. No.^Name^...  (no leading ^)
+   Main data rows:  1^NAME^TAN^...    (no leading ^, starts with digit)
+   Sub col header:  ^Sr. No.^Section^ (leading ^, 2nd field = "Sr. No.")
+   Sub data rows:   ^1^194JB^...      (leading ^, 2nd field = digit)
+   No-data marker:  ^^^*** No Transactions Present ***
+═══════════════════════════════════════════════════════════ */
+function parse26AS(text) {
+  const raw  = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = raw.split('\n');
+
+  /* ── 1. METADATA (first ~6 lines) ── */
+  const meta = {};
+  // Find the metadata header/value pair: two consecutive non-empty lines where first
+  // has '^' and looks like column names and second has values
+  let metaLine = -1;
+  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+    const f = splitCaret(lines[i]);
+    if (f.length >= 5 && f.some(v => /financial year|assessment year|pan|name of assessee/i.test(v))) {
+      // next non-empty line should be values
+      for (let j = i + 1; j < i + 4 && j < lines.length; j++) {
+        const v = splitCaret(lines[j]);
+        if (v.length >= 5 && v.some(x => x.trim() !== '')) {
+          f.forEach((col, ci) => { if (col.trim()) meta[col.trim()] = (v[ci] || '').trim(); });
+          metaLine = j;
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  /* ── 2. LOCATE PARTS ── */
+  // A part header line: starts with ^ followed by PART (case-insensitive), surrounded by ^
+  const PART_HDR = /^\^(PART[\s\-–]+[IVXLCDM\d]+[^\^]*)\^?\s*$/i;
+  const PART_ALT = /^\^(PART[\s\-–]+[IVXLCDM\d]+[^\^]*)$/i;  // trailing ^ optional
+
+  const partStarts = [];  // { idx, roman, title }
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(PART_HDR) || lines[i].match(PART_ALT);
+    if (m) {
+      const raw2 = m[1].trim();
+      // Extract roman numeral and title
+      const rm = raw2.match(/^(PART[\s\-–]+[IVXLCDM\d]+)([\s\-–]*)(.*)/i);
+      const partId = rm ? rm[1].trim().toUpperCase().replace(/[\s\-–]+/g,' ') : raw2.toUpperCase();
+      const title  = rm ? (rm[3] || '').trim() : '';
+      partStarts.push({ idx: i, partId, title, fullTitle: raw2 });
+    }
+  }
+
+  /* ── 3. PARSE EACH PART ── */
+  const parts = [];
+  for (let pi = 0; pi < partStarts.length; pi++) {
+    const start = partStarts[pi].idx + 1;
+    const end   = pi + 1 < partStarts.length ? partStarts[pi + 1].idx : lines.length;
+    const pLines = lines.slice(start, end);
+    const parsed = parsePart(partStarts[pi], pLines);
+    parts.push(parsed);
+  }
+
+  return { meta, parts };
+}
+
+function splitCaret(line) {
+  return line.split('^');
+}
+
+/* Trim array of strings, remove leading/trailing empties */
+function trimFields(arr) {
+  // Remove trailing empty strings
+  while (arr.length && arr[arr.length - 1].trim() === '') arr.pop();
+  return arr.map(x => x.trim());
+}
+
+/* ── Parse a single PART's lines ── */
+function parsePart(partInfo, lines) {
+  /*
+    Within a part we may have multiple "sub-tables".
+    Heuristic:
+      - A line NOT starting with ^ and containing "Sr. No." or "Sr.No" = new table header
+      - A line NOT starting with ^ and starting with a digit = data row for current header
+      - A line starting with ^ and 2nd field is "Sr. No." = sub-table header
+      - A line starting with ^ and 2nd field is a digit = sub-table data row
+      - "No Transactions" marker = mark table as empty
+
+    We produce:
+      tables: [{ name, colHeaders, rows }]        ← main-level table
+      subTables: [{ name, colHeaders, rows }]      ← sub-level table (transactions per deductor)
+
+    Strategy: track "current deductor" context so sub-rows can be annotated.
+  */
+
+  const result = {
+    partId:   partInfo.partId,
+    title:    partInfo.title,
+    fullTitle: partInfo.fullTitle,
+    mainTable:  null,  // { headers, rows: [{srNo, name, tan, ..., subRows:[]}] }
+    extraTables: [],   // additional tables (like PART-X has 2 sub-tables)
+    noData: false
+  };
+
+  // Collect main header, main rows, and sub-info
+  let mainHeaders   = null;
+  let mainRows      = [];
+  let curMainRow    = null;   // current main-level row object
+  let curSubHeaders = null;
+  let extraTableHeaders = null;
+  let extraTableRows    = [];
+  let inExtraTable = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const raw  = line; // preserve original
+    const trimmed = line.trim();
+
+    if (!trimmed) continue;
+
+    const fields = splitCaret(raw);
+
+    // No-transactions marker
+    if (/no\s+transactions?\s+present/i.test(trimmed) || /\*{3,}/.test(trimmed)) {
+      result.noData = (mainRows.length === 0);
+      continue;
+    }
+
+    const startsWithCaret = raw.startsWith('^');
+    const f = fields.map(x => x.trim());
+
+    if (!startsWithCaret) {
+      // Does NOT start with ^
+      // Check: is it a "Sr. No." header line?
+      if (/^sr\.?\s*no\.?/i.test(f[0])) {
+        // It's a column header for a main table
+        if (!mainHeaders) {
+          mainHeaders = trimFields([...f]);
+        } else {
+          // Second header within same part = extra table
+          if (extraTableRows.length > 0 || extraTableHeaders) {
+            result.extraTables.push({ headers: extraTableHeaders, rows: extraTableRows });
+            extraTableRows = [];
+          }
+          extraTableHeaders = trimFields([...f]);
+          inExtraTable = true;
+        }
+      } else if (/^\d/.test(f[0]) && f[0].trim() !== '') {
+        // Data row (starts with digit)
+        if (inExtraTable) {
+          extraTableRows.push(trimFields([...f]));
+        } else {
+          // Main deductor row
+          curMainRow = { _fields: trimFields([...f]), subRows: [], subHeaders: null };
+          mainRows.push(curMainRow);
+          curSubHeaders = null;
+        }
+      }
+    } else {
+      // Starts with ^
+      // f[0] is empty, actual data starts at f[1]
+      const firstData = (f[1] || '').trim();
+
+      if (/^sr\.?\s*no\.?/i.test(firstData)) {
+        // Sub-table column header
+        curSubHeaders = trimFields(f.slice(1));
+        if (curMainRow) curMainRow.subHeaders = curSubHeaders;
+      } else if (/^\d+$/.test(firstData) || /^\d+$/.test(firstData.replace(/[.,]/g,''))) {
+        // Sub data row
+        const subRowData = trimFields(f.slice(1));
+        if (curMainRow) {
+          curMainRow.subRows.push(subRowData);
+        }
+      } else if (firstData !== '') {
+        // Could be a stray header or annotation — ignore
+      }
+    }
+  }
+
+  // Finalize extra table
+  if (extraTableHeaders && extraTableRows.length > 0) {
+    result.extraTables.push({ headers: extraTableHeaders, rows: extraTableRows });
+  }
+
+  if (mainHeaders) {
+    result.mainTable = { headers: mainHeaders, rows: mainRows };
+  }
+
+  if (!result.mainTable && result.extraTables.length === 0) {
+    result.noData = true;
+  }
+
+  return result;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUILD FLAT TABLES FOR DISPLAY & EXPORT
+═══════════════════════════════════════════════════════════ */
+/*
+  For export we produce two flat tables per part with a main table:
+    1. Summary: the main-level rows (deductor / collector summary)
+    2. Transactions: sub-rows flattened, with deductor Sr.No / Name / TAN prepended
+*/
+function buildFlatTables(part) {
+  const out = { summary: null, transactions: null, extra: [] };
+
+  if (part.mainTable) {
+    const mt = part.mainTable;
+
+    // Summary table: main rows, strip empty column slots caused by ^^^^^^
+    const summaryHeaders = mt.headers.filter(h => h !== '');
+    const summaryRows = mt.rows.map(r => {
+      const fields = r._fields.filter((_, i) => mt.headers[i] !== '');
+      return fields;
+    });
+    out.summary = { headers: summaryHeaders, rows: summaryRows };
+
+    // Transaction table: flatten sub-rows
+    // Determine deductor label columns from main headers (first 3 non-empty)
+    const dedCols = summaryHeaders.slice(0, Math.min(3, summaryHeaders.length));
+    // Find sub-headers (use first main row that has them, or fall back)
+    let subHdrs = null;
+    for (const r of mt.rows) { if (r.subHeaders) { subHdrs = r.subHeaders; break; } }
+
+    if (subHdrs && subHdrs.length > 0) {
+      const txHeaders = [...dedCols, ...subHdrs];
+      const txRows = [];
+      for (const r of mt.rows) {
+        const dedVals = summaryHeaders.map((h, i) => {
+          if (dedCols.includes(h)) return (r._fields.filter((_, j) => mt.headers[j] !== ''))[dedCols.indexOf(h)] || '';
+          return null;
+        }).filter(v => v !== null);
+        for (const sr of r.subRows) {
+          txRows.push([...dedVals, ...sr]);
+        }
+      }
+      if (txRows.length > 0) {
+        out.transactions = { headers: txHeaders, rows: txRows };
+      }
+    }
+  }
+
+  // Extra tables (e.g. PART-X second table)
+  for (const et of part.extraTables) {
+    out.extra.push({ headers: et.headers.filter(h => h !== ''), rows: et.rows.map(r => r.filter((_, i) => et.headers[i] !== '')) });
+  }
+
+  return out;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER UI
+═══════════════════════════════════════════════════════════ */
+const PART_ICONS = {
+  'PART I':   '🏦', 'PART II': '📋', 'PART III': '📄',
+  'PART IV':  '🏠', 'PART V':  '💎', 'PART VI':  '🏪',
+  'PART VII': '↩️', 'PART VIII':'🔄','PART IX':  '🔷',
+  'PART X':   '⚠️'
+};
+
+function renderAll() {
+  renderMeta();
+  renderTabs();
+  document.getElementById('info-card').style.display = 'block';
+  document.getElementById('preview').style.display   = 'block';
+  document.getElementById('actions').style.display   = 'block';
+  updateSummary();
+}
+
+function renderMeta() {
+  const grid = document.getElementById('ig');
+  grid.innerHTML = '';
+  const m = STATE.meta;
+  for (const [k, v] of Object.entries(m)) {
+    if (!v) continue;
+    const d = document.createElement('div');
+    d.className = 'ig-item';
+    d.innerHTML = `<div class="ig-label">${esc(k)}</div><div class="ig-val">${esc(v)}</div>`;
+    grid.appendChild(d);
+  }
+}
+
+function renderTabs() {
+  const bar  = document.getElementById('tab-bar');
+  const cont = document.getElementById('tab-content');
+  bar.innerHTML = ''; cont.innerHTML = '';
+  let firstKey = null;
+
+  for (const part of STATE.parts) {
+    const flat = buildFlatTables(part);
+    const totalRows = (flat.summary ? flat.summary.rows.length : 0) +
+                      (flat.transactions ? flat.transactions.rows.length : 0) +
+                      flat.extra.reduce((s, t) => s + t.rows.length, 0);
+    const icon = PART_ICONS[part.partId] || '📄';
+    const key  = part.partId;
+
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (totalRows === 0 ? ' empty' : '');
+    btn.dataset.tab = key;
+    btn.title = part.title;
+    const shortLabel = key.replace('PART ', 'Part ');
+    btn.innerHTML = `${icon} ${shortLabel}` + (totalRows > 0 ? `<span class="cnt">${totalRows}</span>` : '');
+    btn.onclick = () => switchTab(key);
+    bar.appendChild(btn);
+
+    const pane = document.createElement('div');
+    pane.className = 'tab-pane';
+    pane.id = 'pane-' + key.replace(/ /g,'_');
+    pane.innerHTML = buildPaneHTML(part, flat);
+    cont.appendChild(pane);
+
+    if (!firstKey) firstKey = key;
+  }
+  if (firstKey) switchTab(firstKey);
+}
+
+function switchTab(key) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  const btn  = document.querySelector(`.tab-btn[data-tab="${key}"]`);
+  const pane = document.getElementById('pane-' + key.replace(/ /g,'_'));
+  if (btn)  btn.classList.add('active');
+  if (pane) pane.classList.add('active');
+}
+
+function buildPaneHTML(part, flat) {
+  let h = `<div class="sec-head">${esc(part.partId)} — ${esc(part.title)}</div>`;
+
+  if (part.noData && !flat.summary && !flat.transactions && flat.extra.length === 0) {
+    return h + `<div class="no-data">No transactions present in this section.</div>`;
+  }
+
+  // Summary
+  if (flat.summary && flat.summary.rows.length > 0) {
+    h += makeTableHTML('Summary (Deductor / Collector Level)', flat.summary.headers, flat.summary.rows);
+  }
+
+  // Transactions
+  if (flat.transactions && flat.transactions.rows.length > 0) {
+    h += makeTableHTML('Transaction Details', flat.transactions.headers, flat.transactions.rows);
+  }
+
+  // Extra
+  for (let i = 0; i < flat.extra.length; i++) {
+    const et = flat.extra[i];
+    if (et.rows.length > 0) {
+      h += makeTableHTML('Additional Table ' + (i + 1), et.headers, et.rows);
+    }
+  }
+
+  if (!flat.summary && !flat.transactions && flat.extra.length === 0) {
+    h += `<div class="no-data">No data extracted for this section.</div>`;
+  }
+
+  return h;
+}
+
+const MAX_PREVIEW = 300;
+function makeTableHTML(label, headers, rows) {
+  const shown = rows.slice(0, MAX_PREVIEW);
+  let h = `<div class="sec-stats">
+    <div class="s-chip"><div class="sl">${esc(label)}</div><div class="sv">Rows: ${rows.length.toLocaleString()} &nbsp; Cols: ${headers.length}</div></div>
+  </div>`;
+  h += `<div class="tbl-wrap"><table>`;
+  h += `<thead><tr>${headers.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>`;
+  h += `<tbody>${shown.map(r => `<tr>${headers.map((_, i) => `<td>${esc(r[i] || '')}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  h += `</table></div>`;
+  if (rows.length > MAX_PREVIEW) {
+    h += `<div class="more-rows">⚠ Showing ${MAX_PREVIEW} of ${rows.length.toLocaleString()} rows — all rows will be included in Excel export.</div>`;
+  }
+  return h;
+}
+
+function updateSummary() {
+  let totalTx = 0, parts = 0;
+  for (const part of STATE.parts) {
+    const flat = buildFlatTables(part);
+    if (flat.transactions) { totalTx += flat.transactions.rows.length; parts++; }
+    else if (flat.summary && flat.summary.rows.length > 0) parts++;
+  }
+  document.getElementById('sum-txt').textContent =
+    `${STATE.parts.length} sections parsed · ${totalTx.toLocaleString()} transaction rows ready for export`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EXCEL EXPORT
+═══════════════════════════════════════════════════════════ */
+// Map part IDs to readable sheet names (max 31 chars)
+const SHEET_NAME_MAP = {
+  'PART I':   ['TDS Summary (I)', 'TDS Transactions (I)'],
+  'PART II':  ['TDS 15G-15H (II)', null],
+  'PART III': ['Sec194B-194R (III)', null],
+  'PART IV':  ['194IA-IB Seller (IV)', null],
+  'PART V':   ['VDA Seller (V)', null],
+  'PART VI':  ['TCS Summary (VI)', 'TCS Transactions (VI)'],
+  'PART VII': ['Refunds (VII)', null],
+  'PART VIII':['194IA-IB Buyer (VIII)', null],
+  'PART IX':  ['VDA Buyer (IX)', null],
+  'PART X':   ['TDS-TCS Defaults (X)', null],
+};
+
+function doDownload() {
+  const btn = document.getElementById('dl-btn');
+  btn.disabled = true; btn.textContent = '⏳ Generating Excel…';
+
+  setTimeout(() => {
+    try {
+      const wb = XLSX.utils.book_new();
+
+      /* ── Taxpayer Info sheet ── */
+      const infoAOA = [['Field', 'Value'], ...Object.entries(STATE.meta)];
+      const wsInfo  = XLSX.utils.aoa_to_sheet(infoAOA);
+      setColWidths(wsInfo, [35, 50]);
+      XLSX.utils.book_append_sheet(wb, wsInfo, 'Taxpayer Info');
+
+      /* ── Per-part sheets ── */
+      const usedNames = new Set(['Taxpayer Info']);
+
+      for (const part of STATE.parts) {
+        const flat  = buildFlatTables(part);
+        const names = SHEET_NAME_MAP[part.partId] || [part.partId.substring(0, 31), null];
+
+        // Summary sheet
+        if (flat.summary && flat.summary.rows.length > 0) {
+          const aoa = [flat.summary.headers, ...flat.summary.rows];
+          const ws  = XLSX.utils.aoa_to_sheet(aoa);
+          autoColWidths(ws, aoa);
+          const sn  = uniqueName(usedNames, names[0] || part.partId);
+          XLSX.utils.book_append_sheet(wb, ws, sn);
+        }
+
+        // Transactions sheet
+        if (flat.transactions && flat.transactions.rows.length > 0) {
+          const aoa = [flat.transactions.headers, ...flat.transactions.rows];
+          const ws  = XLSX.utils.aoa_to_sheet(aoa);
+          autoColWidths(ws, aoa);
+          const sn  = uniqueName(usedNames, names[1] || (part.partId + ' Detail').substring(0, 31));
+          XLSX.utils.book_append_sheet(wb, ws, sn);
+        }
+
+        // Extra tables
+        for (let i = 0; i < flat.extra.length; i++) {
+          const et = flat.extra[i];
+          if (et.rows.length > 0) {
+            const aoa = [et.headers, ...et.rows];
+            const ws  = XLSX.utils.aoa_to_sheet(aoa);
+            autoColWidths(ws, aoa);
+            const sn  = uniqueName(usedNames, (part.partId + ' T' + (i + 2)).substring(0, 31));
+            XLSX.utils.book_append_sheet(wb, ws, sn);
+          }
+        }
+      }
+
+      const pan  = (STATE.meta['Permanent Account Number (PAN)'] || 'UNKNOWN').replace(/[^A-Z0-9]/gi,'');
+      const ay   = (STATE.meta['Assessment Year'] || '').replace(/[^0-9\-]/g,'').replace(/-/g,'_');
+      XLSX.writeFile(wb, `26AS_${pan}_${ay || 'AY'}.xlsx`);
+
+      document.getElementById('info-msg').textContent = '✅ Excel file downloaded successfully!';
+      document.getElementById('info-msg').style.display = 'block';
+      setTimeout(() => { document.getElementById('info-msg').style.display = 'none'; }, 4000);
+    } catch(ex) {
+      showErr('Export failed: ' + ex.message);
+    }
+    btn.disabled = false;
+    btn.textContent = '⬇️ Download Excel (.xlsx)';
+  }, 50);
+}
+
+function uniqueName(used, name) {
+  let n = name.substring(0, 31); let c = 1;
+  while (used.has(n)) { n = (name.substring(0, 28) + ' ' + (++c)).substring(0, 31); }
+  used.add(n); return n;
+}
+
+function setColWidths(ws, widths) {
+  ws['!cols'] = widths.map(w => ({ wch: w }));
+}
+
+function autoColWidths(ws, aoa) {
+  if (!aoa.length) return;
+  const ncols = Math.max(...aoa.map(r => r.length));
+  const widths = Array(ncols).fill(10);
+  for (const row of aoa) {
+    for (let c = 0; c < row.length; c++) {
+      widths[c] = Math.max(widths[c], String(row[c] || '').length);
+    }
+  }
+  ws['!cols'] = widths.map(w => ({ wch: Math.min(w + 2, 60) }));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════════════════════ */
+function showProg(pct, lbl) {
+  document.getElementById('prog-wrap').style.display = 'block';
+  document.getElementById('prog-bar').style.width = pct + '%';
+  document.getElementById('prog-lbl').textContent  = lbl;
+}
+function hideProg()  { document.getElementById('prog-wrap').style.display = 'none'; }
+function showErr(m)  { const e = document.getElementById('err'); e.textContent = '⚠ ' + m; e.style.display = 'block'; }
+function hideErr()   { document.getElementById('err').style.display = 'none'; }
+function setStep(n)  {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('s' + i);
+    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+}
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtSz(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1048576).toFixed(2) + ' MB';
+}
+function resetUI() {
+  hideErr();
+  document.getElementById('info-msg').style.display = 'none';
+  hideProg();
+  document.getElementById('prog-bar').style.width = '0%';
+  document.getElementById('info-card').style.display = 'none';
+  document.getElementById('preview').style.display   = 'none';
+  document.getElementById('actions').style.display   = 'none';
+  document.getElementById('tab-bar').innerHTML       = '';
+  document.getElementById('tab-content').innerHTML   = '';
+  document.getElementById('ig').innerHTML            = '';
+}
+function resetAll() {
+  resetUI();
+  STATE = { meta: {}, parts: [] };
+  document.getElementById('fi').value = '';
+  document.getElementById('file-bar').style.display = 'none';
+  document.getElementById('f-name').textContent = '';
+  document.getElementById('f-size').textContent = '';
+  setStep(1);
+}
+</script>
+</body>
+</html>
