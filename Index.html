@@ -54,42 +54,32 @@
         .connection-line { fill: none; stroke: var(--deadline-red); stroke-width: 2; stroke-dasharray: 6; animation: dash 1s linear infinite; }
         @keyframes dash { from { stroke-dashoffset: 12; } to { stroke-dashoffset: 0; } }
 
-        #tools { margin-top: 80px; }
         .bucket-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; perspective: 1000px; }
-        
-        .bucket-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; color: var(--text-high); font-size: 1rem; cursor: pointer; transition: all 0.3s ease; font-weight: 500; transform-style: preserve-3d; transform-origin: center; }
-        .bucket-btn:hover, .bucket-btn.active { border-color: var(--accent-blue); background: #000a15; transform: translateY(-3px); }
+        .bucket-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; color: var(--text-high); font-size: 1rem; cursor: pointer; transition: all 0.3s ease; font-weight: 500; }
+        .bucket-btn.active { border-color: var(--accent-blue); background: #000a15; }
         
         .tools-panel { display: none; animation: fadeIn 0.4s; }
         .tools-panel.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .tools-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-        
         .tool-flip-card { background-color: transparent; perspective: 1000px; height: 160px; cursor: pointer; }
-        .tool-flip-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
+        .tool-flip-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
         .tool-flip-card.is-flipped .tool-flip-inner { transform: rotateY(180deg); }
-        
-        .tool-flip-front, .tool-flip-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .tool-flip-front, .tool-flip-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .tool-flip-back { transform: rotateY(180deg); background: #051a0f; border-color: var(--accent-green); }
-        
-        .tool-flip-front h4 { margin: 0; color: var(--text-high); font-size: 0.95rem; }
+        .tool-flip-front h4 { margin: 0; font-size: 0.95rem; }
         .tool-flip-front span { display: block; font-size: 0.75rem; color: var(--text-low); margin-top: 8px; }
-        .tool-flip-back p { margin: 0; font-size: 0.8rem; color: var(--text-high); line-height: 1.5; padding-bottom: 12px; }
-        .tool-launch-btn { background: var(--accent-green); color: #000; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: 700; transition: 0.2s; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+        .tool-flip-back p { margin: 0; font-size: 0.8rem; line-height: 1.5; padding-bottom: 12px; }
+        .tool-launch-btn { background: var(--accent-green); color: #000; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: 700; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(5px); justify-content: center; align-items: center; }
         .flip-card { background-color: transparent; width: 90%; max-width: 550px; height: 500px; perspective: 1000px; }
-        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: left; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
         .flip-card.is-flipped .flip-card-inner { transform: rotateY(180deg); }
-        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 40px; overflow-y: auto; }
+        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 40px; overflow-y: auto; }
         .flip-card-back { transform: rotateY(180deg); }
         .close-btn { position: absolute; top: 20px; right: 25px; color: var(--text-low); font-size: 1.5rem; cursor: pointer; }
-        
-        .contact-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
-        .contact-btn { display: flex; align-items: center; gap: 15px; padding: 15px; background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-high); text-decoration: none; transition: 0.3s; font-size: 0.9rem; }
-        .competence-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; margin-bottom: 25px; }
-        .tag { background: #0a0a0a; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: var(--text-high); }
     </style>
 </head>
 <body>
@@ -140,28 +130,19 @@
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>26AS Converter</h4><span>Format Processing</span></div>
-                        <div class="tool-flip-back">
-                            <p>Convert 26AS into excel / Zip</p>
-                            <a href="New_26AS_Converter_excel_or_Zip_file.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
-                        </div>
+                        <div class="tool-flip-back"><p>Convert 26AS into excel / Zip</p><a href="New_26AS_Converter_excel_or_Zip_file.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
                     </div>
                 </div>
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>Challan Tool</h4><span>Payment Generation</span></div>
-                        <div class="tool-flip-back">
-                            <p>Convert PDFs to structured excel</p>
-                            <a href="New_Challan_Converter.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
-                        </div>
+                        <div class="tool-flip-back"><p>Convert PDFs to structured excel</p><a href="New_Challan_Converter.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
                     </div>
                 </div>
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>TDS Tool</h4><span>Calculation Suite</span></div>
-                        <div class="tool-flip-back">
-                            <p>Dynamic TDS/TCS calculators</p>
-                            <a href="TDS_Tool.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
-                        </div>
+                        <div class="tool-flip-back"><p>Dynamic TDS/TCS calculators</p><a href="TDS_Tool.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
                     </div>
                 </div>
             </div>
@@ -172,19 +153,13 @@
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>File Diff</h4><span>Compare Datasets</span></div>
-                        <div class="tool-flip-back">
-                            <p>Highlight similarities and differences</p>
-                            <a href="SmartFileDiffComparator.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
-                        </div>
+                        <div class="tool-flip-back"><p>Highlight similarities and differences</p><a href="SmartFileDiffComparator.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
                     </div>
                 </div>
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>PDF Renamer</h4><span>Batch Organization</span></div>
-                        <div class="tool-flip-back">
-                            <p>Batch rename TDS certificates</p>
-                            <a href="PDF_Renamer_AY_FY New one.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
-                        </div>
+                        <div class="tool-flip-back"><p>Batch rename TDS certificates</p><a href="PDF Renamer_AY FY New one.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
                     </div>
                 </div>
             </div>
@@ -210,10 +185,6 @@
                 <span class="close-btn" onclick="closeAbout()">&times;</span>
                 <h2 style="font-size: 1.3rem;">Professional Summary</h2>
                 <p style="font-size: 0.85rem;">Senior Tax Expert specializing in Direct Tax, TDS, GST, and Transfer Pricing compliance. Experienced in handling tax notices, reconciliation (90%+ accuracy), and process automation initiatives.</p>
-                <h3 style="color: var(--text-high); font-size: 1rem; margin-top: 20px;">Core Competencies</h3>
-                <div class="competence-tags">
-                    <span class="tag">Tax Compliance</span><span class="tag">Notice Handling</span><span class="tag">Transfer Pricing</span><span class="tag">Process Automation</span><span class="tag">Advanced Excel</span>
-                </div>
                 <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem; width: 100%;" onclick="flipAbout()">⤶ Back</button>
             </div>
         </div>
@@ -226,40 +197,28 @@
     let currentYear = today.getFullYear(); 
 
     const taxRegistry = {
-        0: [ { d: 7, l: "TDS & TCS Payment", t: "December Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "TCS Filing", t: "Q3 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "TDS Filing", t: "Q3 Form 24Q/26Q" } ],
-        1: [ { d: 7, l: "TDS & TCS Payment", t: "January Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" } ],
-        2: [ { d: 7, l: "TDS & TCS Payment", t: "February Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "Advance Tax", t: "Q4 Final Installment" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "Revised ITR", t: "Budget 2026" } ],
-        3: [ { d: 7, l: "TCS Payment", t: "March Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 30, l: "TDS Payment", t: "March Deductions" } ],
-        4: [ { d: 7, l: "TDS & TCS Payment", t: "April Month" }, { d: 15, l: "TCS Filing", t: "Q4 Form 27EQ" }, { d: 31, l: "TDS Filing", t: "Q4 Form 24Q/26Q" } ],
-        5: [ { d: 7, l: "TDS & TCS Payment", t: "May Month" }, { d: 15, l: "Advance Tax", t: "Q1 1st Installment" } ],
-        6: [ { d: 7, l: "TDS & TCS Payment", t: "June Month" }, { d: 31, l: "ITR Filing", t: "Non-Audit" } ],
-        7: [ { d: 7, l: "TDS & TCS Payment", t: "July Month" } ],
-        8: [ { d: 7, l: "TDS & TCS Payment", t: "August Month" }, { d: 15, l: "Advance Tax", t: "Q2 2nd Installment" }, { d: 30, l: "Tax Audit Report", t: "Statutory Due" } ],
-        9: [ { d: 7, l: "TDS & TCS Payment", t: "September Month" }, { d: 31, l: "ITR Filing", t: "Audit Cases" } ],
-        10: [ { d: 7, l: "TDS & TCS Payment", t: "October Month" }, { d: 30, l: "TP Report", t: "Form 3CEB" } ],
-        11: [ { d: 7, l: "TDS & TCS Payment", t: "November Month" }, { d: 15, l: "Advance Tax", t: "Q3 3rd Installment" } ]
+        0: [ { d: 7, l: "TDS & TCS Payment", t: "December Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "TDS Filing", t: "Q3 Form 24Q/26Q" } ],
+        1: [ { d: 7, l: "TDS & TCS Payment", t: "January Month" }, { d: 20, l: "GSTR-3B", t: "Monthly" } ],
+        2: [ { d: 7, l: "TDS & TCS Payment", t: "February Month" }, { d: 15, l: "Advance Tax", t: "Q4 Final Installment" }, { d: 31, l: "Revised ITR", t: "Budget 2026" } ],
+        3: [ { d: 7, l: "TCS Payment", t: "March Month" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 30, l: "TDS Payment", t: "March Deductions" } ],
+        4: [ { d: 7, l: "TDS Payment", t: "April Month" }, { d: 31, l: "TDS Filing", t: "Q4 Form 24Q/26Q" } ]
     };
 
     function build() {
         if (currentMonth > 11) { currentMonth = 0; currentYear++; } 
         else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-
         const grid = document.getElementById('calendarGrid');
         const list = document.getElementById('deadlineList');
         const date = new Date(currentYear, currentMonth, 1);
         document.getElementById('monthDisplay').innerText = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-        
         grid.innerHTML = '<div class="day-label">S</div><div class="day-label">M</div><div class="day-label">T</div><div class="day-label">W</div><div class="day-label">T</div><div class="day-label">F</div><div class="day-label">S</div>';
-        
         const monthItems = taxRegistry[currentMonth] || [];
         list.innerHTML = '<h4 style="margin-top:0; color:var(--accent-green); font-size:0.9rem;">STATUTORY CHECKLIST</h4>';
-        
         if (monthItems.length === 0) {
-            list.innerHTML += '<p style="color:var(--text-low); font-size: 0.9rem;">No major statutory deadlines scheduled.</p>';
+            list.innerHTML += '<p style="color:var(--text-low); font-size: 0.9rem;">No major deadlines scheduled.</p>';
         } else {
             monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d} (${i.t})</small></div>`);
         }
-
         const start = new Date(currentYear, currentMonth, 1).getDay();
         const len = new Date(currentYear, currentMonth + 1, 0).getDate();
         for(let i=0; i<start; i++) grid.innerHTML += '<div></div>';
@@ -271,65 +230,33 @@
     }
 
     function changeMonth(n) { currentMonth += n; build(); }
-
     function link(d) {
         const svg = document.getElementById('connector-canvas');
         const sEl = document.getElementById(`date-${d}`);
         const eEl = document.getElementById(`item-${d}`);
         const mainRect = document.querySelector('.main').getBoundingClientRect();
-        
         document.querySelectorAll('.deadline-item').forEach(el => el.classList.remove('active-deadline'));
         if(eEl) eEl.classList.add('active-deadline');
-        
-        const s = sEl.getBoundingClientRect();
-        const e = eEl.getBoundingClientRect();
-
-        const x1 = s.left + s.width/2 - mainRect.left;
-        const y1 = s.top + s.height/2 - mainRect.top;
-        const x2 = e.left - mainRect.left;
-        const y2 = e.top + e.height/2 - mainRect.top;
-
+        const s = sEl.getBoundingClientRect(); const e = eEl.getBoundingClientRect();
+        const x1 = s.left + s.width/2 - mainRect.left; const y1 = s.top + s.height/2 - mainRect.top;
+        const x2 = e.left - mainRect.left; const y2 = e.top + e.height/2 - mainRect.top;
         svg.innerHTML = `<path d="M ${x1} ${y1} C ${x1+150} ${y1-40}, ${x2-150} ${y2+40}, ${x2} ${y2}" class="connection-line" />`;
     }
 
     build();
-
     function switchTab(tabId, btnElement) {
         document.querySelectorAll('.tools-panel').forEach(panel => panel.classList.remove('active'));
         document.querySelectorAll('.bucket-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         btnElement.classList.add('active');
     }
-
     function comingSoon(btnElement, originalText) {
-        if (btnElement.dataset.animating === "true") return;
-        btnElement.dataset.animating = "true";
-        document.querySelectorAll('.bucket-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tools-panel').forEach(panel => panel.classList.remove('active'));
-        btnElement.style.transform = "rotateX(90deg)";
-        
-        setTimeout(() => {
-            btnElement.innerHTML = "Coming Soon ⏳";
-            btnElement.style.transform = "rotateX(0deg)";
-            btnElement.style.color = "var(--accent-green)";
-            btnElement.style.borderColor = "var(--accent-green)";
-            setTimeout(() => {
-                btnElement.style.transform = "rotateX(90deg)"; 
-                setTimeout(() => {
-                    btnElement.innerHTML = originalText;
-                    btnElement.style.transform = "rotateX(0deg)";
-                    btnElement.style.color = "";
-                    btnElement.style.borderColor = "";
-                    btnElement.dataset.animating = "false";
-                }, 300); 
-            }, 2000); 
-        }, 300); 
+        btnElement.innerHTML = "Coming Soon ⏳";
+        setTimeout(() => { btnElement.innerHTML = originalText; }, 2000); 
     }
-
     function openAbout() { document.getElementById('aboutModal').style.display = 'flex'; }
-    function closeAbout() { document.getElementById('aboutModal').style.display = 'none'; setTimeout(() => { document.getElementById('aboutCard').classList.remove('is-flipped'); }, 300); }
+    function closeAbout() { document.getElementById('aboutModal').style.display = 'none'; }
     function flipAbout() { document.getElementById('aboutCard').classList.toggle('is-flipped'); }
-    window.onclick = function(event) { if (event.target == document.getElementById('aboutModal')) { closeAbout(); } }
 </script>
 </body>
 </html>
