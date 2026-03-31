@@ -20,6 +20,7 @@
         * { box-sizing: border-box; scroll-behavior: smooth; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; overflow-x: hidden; }
 
+        /* Sidebar */
         .sidebar { width: 260px; background: var(--bg-pure); height: 100vh; position: fixed; border-right: 1px solid var(--border-color); z-index: 100; }
         .profile-area { padding: 50px 30px; border-bottom: 1px solid var(--border-color); }
         .profile-area h2 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; color: var(--text-high); }
@@ -28,6 +29,7 @@
         .nav-item { padding: 18px 30px; cursor: pointer; transition: 0.3s; color: var(--text-low); font-size: 0.9rem; }
         .nav-item:hover { color: var(--text-high); background: #0a0a0a; }
 
+        /* Main Content */
         .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); position: relative; }
 
         header { margin-bottom: 30px; }
@@ -79,7 +81,7 @@
         .tool-launch-btn { background: var(--accent-green); color: #000; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: 700; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(5px); justify-content: center; align-items: center; }
-        .flip-card { background-color: transparent; width: 90%; max-width: 550px; height: 520px; perspective: 1000px; }
+        .flip-card { background-color: transparent; width: 90%; max-width: 550px; height: 580px; perspective: 1000px; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
         .flip-card.is-flipped .flip-card-inner { transform: rotateY(180deg); }
         .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 40px; overflow-y: auto; }
@@ -88,7 +90,7 @@
         
         .contact-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
         .contact-btn { display: flex; align-items: center; gap: 15px; padding: 15px; background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-high); text-decoration: none; transition: 0.3s; font-size: 0.9rem; }
-        .tag { background: #0a0a0a; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: var(--text-high); }
+        .tag { background: #0a0a0a; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; color: var(--text-high); }
     </style>
 </head>
 <body>
@@ -200,27 +202,39 @@
 <div id="aboutModal" class="modal">
     <div class="flip-card" id="aboutCard">
         <div class="flip-card-inner">
+            
             <div class="flip-card-front">
                 <span class="close-btn" onclick="closeAbout()">&times;</span>
                 <h2>About Vadiraj</h2>
-                <p>Finance and Tax professional with 6+ years of experience in Direct Tax, TDS, GST, and Transfer Pricing compliance.</p>
-                <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem;" onclick="flipAbout()">Read Detailed Summary ⤾</button>
+                <p>Finance and Tax professional with 6+ years of experience in Direct Tax, TDS, GST, and Transfer Pricing (TP) compliance.</p>
+                <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem; width: 100%; margin-bottom: 20px;" onclick="flipAbout()">Read Full Summary ⤾</button>
                 <div class="contact-grid">
                     <a href="mailto:vadiking8234@gmail.com" class="contact-btn">✉️ vadiking8234@gmail.com</a>
                     <a href="https://www.linkedin.com/in/vadiking/" target="_blank" class="contact-btn">💼 LinkedIn Profile</a>
                     <a href="tel:+919886449638" class="contact-btn">📞 +91 98864 49638</a>
                 </div>
             </div>
+
             <div class="flip-card-back">
                 <span class="close-btn" onclick="closeAbout()">&times;</span>
                 <h2 style="font-size: 1.3rem;">Professional Summary</h2>
-                <p style="font-size: 0.85rem;">Senior Tax Expert specializing in Direct Tax, TDS, GST, and Transfer Pricing (TP). Experienced in handling tax notices, refund processing, and regulatory reporting. Contributing to Clause 34 reporting, 26AS reconciliation (90%+ accuracy), and process automation initiatives.</p>
-                <h3 style="color: var(--text-high); font-size: 1rem; margin-top: 20px;">Core Competencies</h3>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                    <span class="tag">Tax Compliance</span><span class="tag">Notice Handling</span><span class="tag">Transfer Pricing</span><span class="tag">Refund Processing</span><span class="tag">Process Automation</span>
+                <p style="font-size: 0.85rem;">Finance and Tax professional with 6+ years of experience in Direct Tax, TDS, GST, and Transfer Pricing (TP) compliance, including APA documentation support for multinational entities. Experienced in handling tax notices, refund processing, and regulatory reporting while ensuring statutory adherence. Currently working in Tax Technology and Product Compliance, contributing to Clause 34 reporting, 26AS reconciliation (90%+ accuracy), regulatory updates implementation, and process automation initiatives.</p>
+                
+                <h3 style="color: var(--text-high); font-size: 1rem; margin-top: 15px; margin-bottom: 10px;">Core Competencies</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <span class="tag">Tax Compliance (TDS, GST, Direct Tax)</span>
+                    <span class="tag">Notice handling and Assessment</span>
+                    <span class="tag">Transfer Pricing (TP) Compliance</span>
+                    <span class="tag">Basic APA Support</span>
+                    <span class="tag">Refund Processing</span>
+                    <span class="tag">Financial Reporting & Auditing</span>
+                    <span class="tag">Process Automation & Workflow</span>
+                    <span class="tag">Tally ERP, Winman, Clear Tax</span>
+                    <span class="tag">Advanced Excel & Power Automate</span>
                 </div>
                 <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem; width: 100%; margin-top: 20px;" onclick="flipAbout()">⤶ Back to Contact</button>
             </div>
+            
         </div>
     </div>
 </div>
@@ -256,9 +270,13 @@
         
         grid.innerHTML = '<div class="day-label">S</div><div class="day-label">M</div><div class="day-label">T</div><div class="day-label">W</div><div class="day-label">T</div><div class="day-label">F</div><div class="day-label">S</div>';
         const monthItems = taxRegistry[currentMonth] || [];
-        list.innerHTML = '<h4 style="margin-top:0; color:var(--accent-green); font-size:0.9rem;">STATUTORY CHECKLIST</h4>';
-        if (monthItems.length === 0) { list.innerHTML += '<p style="color:var(--text-low); font-size: 0.9rem;">No deadlines scheduled.</p>'; } 
-        else { monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d} (${i.t})</small></div>`); }
+        list.innerHTML = '<h4 style="margin-top:0; color:var(--accent-green); letter-spacing:1px; font-size:0.9rem;">STATUTORY CHECKLIST</h4>';
+        
+        if (monthItems.length === 0) {
+            list.innerHTML += '<p style="color:var(--text-low); font-size: 0.9rem;">No major deadlines scheduled.</p>';
+        } else {
+            monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d} (${i.t})</small></div>`);
+        }
 
         const start = new Date(currentYear, currentMonth, 1).getDay();
         const len = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -271,32 +289,43 @@
     }
 
     function changeMonth(n) { currentMonth += n; build(); }
+
     function link(d) {
         const svg = document.getElementById('connector-canvas');
         const sEl = document.getElementById(`date-${d}`);
         const eEl = document.getElementById(`item-${d}`);
         const mainRect = document.querySelector('.main').getBoundingClientRect();
+        
         document.querySelectorAll('.deadline-item').forEach(el => el.classList.remove('active-deadline'));
         if(eEl) eEl.classList.add('active-deadline');
-        const s = sEl.getBoundingClientRect(); const e = eEl.getBoundingClientRect();
-        const x1 = s.left + s.width/2 - mainRect.left; const y1 = s.top + s.height/2 - mainRect.top;
-        const x2 = e.left - mainRect.left; const y2 = e.top + e.height/2 - mainRect.top;
+        
+        const s = sEl.getBoundingClientRect();
+        const e = eEl.getBoundingClientRect();
+
+        const x1 = s.left + s.width/2 - mainRect.left;
+        const y1 = s.top + s.height/2 - mainRect.top;
+        const x2 = e.left - mainRect.left;
+        const y2 = e.top + e.height/2 - mainRect.top;
+
         svg.innerHTML = `<path d="M ${x1} ${y1} C ${x1+150} ${y1-40}, ${x2-150} ${y2+40}, ${x2} ${y2}" class="connection-line" />`;
     }
 
     build();
+
     function switchTab(tabId, btnElement) {
         document.querySelectorAll('.tools-panel').forEach(panel => panel.classList.remove('active'));
         document.querySelectorAll('.bucket-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         btnElement.classList.add('active');
     }
+
     function comingSoon(btnElement, originalText) {
         if (btnElement.dataset.animating === "true") return;
         btnElement.dataset.animating = "true";
         document.querySelectorAll('.bucket-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tools-panel').forEach(panel => panel.classList.remove('active'));
         btnElement.style.transform = "rotateX(90deg)";
+        
         setTimeout(() => {
             btnElement.innerHTML = "Coming Soon ⏳";
             btnElement.style.transform = "rotateX(0deg)";
@@ -312,9 +341,14 @@
             }, 2000); 
         }, 300); 
     }
+
     function openAbout() { document.getElementById('aboutModal').style.display = 'flex'; }
-    function closeAbout() { document.getElementById('aboutModal').style.display = 'none'; setTimeout(() => { document.getElementById('aboutCard').classList.remove('is-flipped'); }, 300); }
+    function closeAbout() { 
+        document.getElementById('aboutModal').style.display = 'none'; 
+        setTimeout(() => { document.getElementById('aboutCard').classList.remove('is-flipped'); }, 300);
+    }
     function flipAbout() { document.getElementById('aboutCard').classList.toggle('is-flipped'); }
+    window.onclick = function(event) { if (event.target == document.getElementById('aboutModal')) { closeAbout(); } }
 </script>
 </body>
 </html>
