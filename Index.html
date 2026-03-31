@@ -140,19 +140,28 @@
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>26AS Converter</h4><span>Format Processing</span></div>
-                        <div class="tool-flip-back"><p>Convert 26AS into excel / Zip</p><a href="New_26AS_Converter_excel_or_Zip_file.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
+                        <div class="tool-flip-back">
+                            <p>Convert 26AS into excel / Zip</p>
+                            <a href="New_26AS_Converter_excel_or_Zip_file.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
+                        </div>
                     </div>
                 </div>
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>Challan Tool</h4><span>Payment Generation</span></div>
-                        <div class="tool-flip-back"><p>Convert PDFs to structured excel</p><a href="New_Challan_Converter.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
+                        <div class="tool-flip-back">
+                            <p>Convert PDFs to structured excel</p>
+                            <a href="New_Challan_Converter.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
+                        </div>
                     </div>
                 </div>
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>TDS Tool</h4><span>Calculation Suite</span></div>
-                        <div class="tool-flip-back"><p>Dynamic TDS/TCS calculators</p><a href="TDS_Tool.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
+                        <div class="tool-flip-back">
+                            <p>Dynamic TDS/TCS calculators</p>
+                            <a href="TDS_Tool.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -163,13 +172,19 @@
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>File Diff</h4><span>Compare Datasets</span></div>
-                        <div class="tool-flip-back"><p>Highlight similarities and differences</p><a href="SmartFileDiffComparator.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
+                        <div class="tool-flip-back">
+                            <p>Highlight similarities and differences</p>
+                            <a href="SmartFileDiffComparator.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
+                        </div>
                     </div>
                 </div>
                 <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>PDF Renamer</h4><span>Batch Organization</span></div>
-                        <div class="tool-flip-back"><p>Batch rename TDS certificates</p><a href="PDF Renamer_AY FY New one.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
+                        <div class="tool-flip-back">
+                            <p>Batch rename TDS certificates</p>
+                            <a href="PDF_Renamer_AY_FY New one.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -237,10 +252,10 @@
         grid.innerHTML = '<div class="day-label">S</div><div class="day-label">M</div><div class="day-label">T</div><div class="day-label">W</div><div class="day-label">T</div><div class="day-label">F</div><div class="day-label">S</div>';
         
         const monthItems = taxRegistry[currentMonth] || [];
-        list.innerHTML = `<h4 style="margin-top:0; color:var(--accent-green); letter-spacing:1px; font-size:0.9rem;">STATUTORY CHECKLIST</h4>`;
+        list.innerHTML = '<h4 style="margin-top:0; color:var(--accent-green); font-size:0.9rem;">STATUTORY CHECKLIST</h4>';
         
         if (monthItems.length === 0) {
-            list.innerHTML += `<p style="color:var(--text-low); font-size: 0.9rem;">No major statutory deadlines scheduled.</p>`;
+            list.innerHTML += '<p style="color:var(--text-low); font-size: 0.9rem;">No major statutory deadlines scheduled.</p>';
         } else {
             monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d} (${i.t})</small></div>`);
         }
