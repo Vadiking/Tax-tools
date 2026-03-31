@@ -120,8 +120,8 @@
         <h3 style="color: var(--text-low); margin-bottom: 25px; font-size: 0.9rem;">WORKFLOW UTILITIES</h3>
         <div class="bucket-grid">
             <button class="bucket-btn active" onclick="switchTab('direct-tax', this)">Direct Tax</button>
-            <button class="bucket-btn" onclick="comingSoon(this, 'Indirect Tax')">Indirect Tax</button>
-            <button class="bucket-btn" onclick="comingSoon(this, 'Finance')">Finance</button>
+            <button class="bucket-btn" onclick="switchTab('indirect-tax', this)">Indirect Tax</button>
+            <button class="bucket-btn" onclick="switchTab('finance', this)">Finance</button>
             <button class="bucket-btn" onclick="switchTab('others', this)">Others</button>
         </div>
 
@@ -143,6 +143,34 @@
                     <div class="tool-flip-inner">
                         <div class="tool-flip-front"><h4>TDS Tool</h4><span>Calculation Suite</span></div>
                         <div class="tool-flip-back"><p>Dynamic TDS/TCS calculators</p><a href="TDS_Tool.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="indirect-tax" class="tools-panel">
+            <div class="tools-container">
+                <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
+                    <div class="tool-flip-inner">
+                        <div class="tool-flip-front"><h4>GST Reconciler</h4><span>Compliance Module</span></div>
+                        <div class="tool-flip-back" style="background: #1a1a05; border-color: #ffcc00;">
+                            <p>Automated GSTR-2B matching</p>
+                            <span class="tool-launch-btn" style="background: #333; color: #888;">Coming Soon ⏳</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="finance" class="tools-panel">
+            <div class="tools-container">
+                <div class="tool-flip-card" onclick="this.classList.toggle('is-flipped')">
+                    <div class="tool-flip-inner">
+                        <div class="tool-flip-front"><h4>Asset Tracker</h4><span>Portfolio Management</span></div>
+                        <div class="tool-flip-back" style="background: #05101a; border-color: var(--accent-blue);">
+                            <p>Yield and ROI calculators</p>
+                            <span class="tool-launch-btn" style="background: #333; color: #888;">Coming Soon ⏳</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -173,18 +201,17 @@
             <div class="flip-card-front">
                 <span class="close-btn" onclick="closeAbout()">&times;</span>
                 <h2>About Vadiraj</h2>
-                <p>Finance and Tax professional with 6+ years of professional experience. Currently working in Tax Technology and Product Compliance.</p>
+                <p>Finance and Tax professional with 7 years of professional experience. Currently working in Tax Technology and Product Compliance.</p>
                 <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem;" onclick="flipAbout()">Full Summary ⤾</button>
-                <div class="contact-grid">
-                    <a href="mailto:vadiking8234@gmail.com" class="contact-btn">✉️ vadiking8234@gmail.com</a>
-                    <a href="https://www.linkedin.com/in/vadiking/" target="_blank" class="contact-btn">💼 LinkedIn Profile</a>
-                    <a href="tel:+919886449638" class="contact-btn">📞 +91 98864 49638</a>
+                <div class="contact-grid" style="margin-top: 25px; display: flex; flex-direction: column; gap: 10px;">
+                    <a href="mailto:vadiking8234@gmail.com" style="color: var(--accent-blue); text-decoration: none;">✉️ vadiking8234@gmail.com</a>
+                    <a href="https://www.linkedin.com/in/vadiking/" target="_blank" style="color: var(--accent-blue); text-decoration: none;">💼 LinkedIn Profile</a>
                 </div>
             </div>
             <div class="flip-card-back">
                 <span class="close-btn" onclick="closeAbout()">&times;</span>
                 <h2 style="font-size: 1.3rem;">Professional Summary</h2>
-                <p style="font-size: 0.85rem;">Senior Tax Expert specializing in Direct Tax, TDS, GST, and Transfer Pricing compliance. Experienced in handling tax notices, reconciliation (90%+ accuracy), and process automation initiatives.</p>
+                <p style="font-size: 0.85rem;">Senior Tax Expert specializing in Direct Tax, International Taxation, and Transfer Pricing. Experienced in automating tax workflows using HTML tools.</p>
                 <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem; width: 100%;" onclick="flipAbout()">⤶ Back</button>
             </div>
         </div>
@@ -230,6 +257,7 @@
     }
 
     function changeMonth(n) { currentMonth += n; build(); }
+    
     function link(d) {
         const svg = document.getElementById('connector-canvas');
         const sEl = document.getElementById(`date-${d}`);
@@ -243,20 +271,18 @@
         svg.innerHTML = `<path d="M ${x1} ${y1} C ${x1+150} ${y1-40}, ${x2-150} ${y2+40}, ${x2} ${y2}" class="connection-line" />`;
     }
 
-    build();
     function switchTab(tabId, btnElement) {
         document.querySelectorAll('.tools-panel').forEach(panel => panel.classList.remove('active'));
         document.querySelectorAll('.bucket-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         btnElement.classList.add('active');
     }
-    function comingSoon(btnElement, originalText) {
-        btnElement.innerHTML = "Coming Soon ⏳";
-        setTimeout(() => { btnElement.innerHTML = originalText; }, 2000); 
-    }
+
     function openAbout() { document.getElementById('aboutModal').style.display = 'flex'; }
     function closeAbout() { document.getElementById('aboutModal').style.display = 'none'; }
     function flipAbout() { document.getElementById('aboutCard').classList.toggle('is-flipped'); }
+
+    build();
 </script>
 </body>
 </html>
