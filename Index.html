@@ -1,126 +1,175 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Tax Dashboard - Vadiraj</title>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Tax Dashboard - Vadiraj</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            margin: 0;
-            font-family: Arial;
-            display: flex;
-            background: #f5f7fb;
+        :root {
+            --bg-pure: #000000;
+            --card-bg: #111111;
+            --accent-green: #00ff88; 
+            --accent-blue: #00a2ff;  
+            --text-high: #ffffff;
+            --text-low: #888888;
+            --deadline-red: #ff3333;
+            --border-color: #222222;
         }
 
-        .sidebar {
-            width: 220px;
-            background: #1e3c72;
-            color: white;
-            height: 100vh;
-            padding-top: 20px;
-            position: fixed;
-        }
+        * { box-sizing: border-box; scroll-behavior: smooth; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; overflow-x: hidden; }
 
-        .sidebar h2 {
-            text-align: center;
-        }
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--bg-pure); height: 100vh; position: fixed; border-right: 1px solid var(--border-color); z-index: 100; }
+        .profile-area { padding: 50px 30px; border-bottom: 1px solid var(--border-color); }
+        .profile-area h2 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; color: var(--text-high); }
+        .profile-area p { font-size: 0.75rem; color: var(--text-low); margin-top: 5px; }
 
-        .menu-btn {
-            padding: 15px;
-            cursor: pointer;
-        }
+        .nav-item { padding: 18px 30px; cursor: pointer; transition: 0.3s; color: var(--text-low); font-size: 0.9rem; }
+        .nav-item:hover { color: var(--text-high); background: #0a0a0a; }
 
-        .menu-btn:hover {
-            background: #2a5298;
-        }
+        /* Main Content */
+        .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); position: relative; }
 
-        .main {
-            margin-left: 220px;
-            padding: 30px;
-            width: 100%;
-        }
+        header { margin-bottom: 40px; }
+        header h1 { font-size: 1.8rem; margin: 0; color: var(--text-high); }
+        header p { color: var(--text-low); margin-top: 5px; }
 
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
+        /* Calendar Controls */
+        .calendar-nav { display: flex; align-items: center; gap: 25px; margin-bottom: 30px; }
+        .arrow { background: transparent; border: 1px solid var(--border-color); color: var(--text-high); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .arrow:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
 
-        .tools-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
+        .dashboard-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; position: relative; }
 
-        .tool-card {
-            background: #1e3c72;
-            color: white;
-            padding: 20px;
-            text-decoration: none;
-            border-radius: 10px;
-            text-align: center;
-        }
+        /* Calendar & Deadlines */
+        .calendar-card, .deadline-card { background: var(--card-bg); border-radius: 24px; padding: 30px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; text-align: center; }
+        .day-label { color: var(--text-low); font-size: 0.7rem; font-weight: 700; margin-bottom: 15px; }
+        .day { aspect-ratio: 1; border-radius: 12px; background: #181818; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; border: 1px solid transparent; }
+        .day.highlight { border: 1px solid var(--accent-green); color: var(--accent-green); font-weight: 600; cursor: pointer; }
+        .day.highlight:hover { background: var(--accent-green); color: #000; transform: scale(1.1); }
 
-        .tool-card:hover {
-            background: #2a5298;
-        }
+        .deadline-item { padding: 18px; margin-bottom: 12px; background: #0a0a0a; border-radius: 16px; border-left: 3px solid var(--accent-green); transition: 0.3s; }
+        .active-deadline { border-left-color: var(--deadline-red); background: #1a0505; transform: translateX(10px); }
+
+        /* SVG Connection Line */
+        #connector-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .connection-line { fill: none; stroke: var(--deadline-red); stroke-width: 2; stroke-dasharray: 6; animation: dash 1s linear infinite; }
+        @keyframes dash { from { stroke-dashoffset: 12; } to { stroke-dashoffset: 0; } }
+
+        /* Tools Section */
+        #tools { margin-top: 80px; }
+        .tools-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .tool-link { background: var(--card-bg); padding: 30px 20px; border-radius: 20px; text-align: center; text-decoration: none; color: var(--text-high); border: 1px solid var(--border-color); transition: 0.3s; display: block; }
+        .tool-link:hover { border-color: var(--accent-blue); transform: translateY(-5px); background: #000a15; }
+        .tool-link span { display: block; font-size: 0.75rem; color: var(--text-low); margin-top: 8px; }
     </style>
-
-    <script>
-        function showSection(id) {
-            document.getElementById("dashboard").style.display = "none";
-            document.getElementById("tools").style.display = "none";
-            document.getElementById(id).style.display = "block";
-        }
-    </script>
-
 </head>
-
 <body>
 
 <div class="sidebar">
-    <h2>⚡ Tax Panel</h2>
-    <div class="menu-btn" onclick="showSection('dashboard')">📅 Compliance</div>
-    <div class="menu-btn" onclick="showSection('tools')">🛠 Tools</div>
+    <div class="profile-area">
+        <h2>Vadiraj</h2>
+        <p>Professional Tax Workspace</p>
+    </div>
+    <div class="nav-links">
+        <div class="nav-item" onclick="window.scrollTo(0,0)">Compliance Dashboard</div>
+        <div class="nav-item" onclick="document.getElementById('tools').scrollIntoView()">Utility Tools</div>
+    </div>
 </div>
 
 <div class="main">
+    <svg id="connector-canvas"></svg>
 
-    <!-- DASHBOARD -->
-    <div id="dashboard">
-        <h1>Compliance Calendar</h1>
+    <header>
+        <h1>Tax Management Portal</h1>
+        <p>Welcome back. Review your upcoming statutory deadlines below.</p>
+    </header>
 
-        <div class="card">
-            <h3>TDS</h3>
-            <p>Payment: 7th of next month</p>
-            <p>Return Q1: 31 July</p>
-            <p>Return Q2: 31 October</p>
-            <p>Return Q3: 31 January</p>
-            <p>Return Q4: 31 May</p>
-        </div>
-
-        <div class="card">
-            <h3>GST</h3>
-            <p>GSTR-1: 11th</p>
-            <p>GSTR-3B: 20th</p>
-            <p>QRMP: 13th after quarter</p>
-        </div>
+    <div class="calendar-nav">
+        <button class="arrow" onclick="changeMonth(-1)">&#10094;</button>
+        <h2 id="monthDisplay" style="margin:0; width:220px; text-align:center; letter-spacing: 1px;">March 2026</h2>
+        <button class="arrow" onclick="changeMonth(1)">&#10095;</button>
     </div>
 
-    <!-- TOOLS -->
-    <div id="tools" style="display:none;">
-        <h1>Your Tools</h1>
+    <div class="dashboard-grid">
+        <div class="calendar-card">
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
 
+        <div class="deadline-card" id="deadlineList">
+            </div>
+    </div>
+
+    <section id="tools">
+        <h3 style="color: var(--text-low); margin-bottom: 25px; letter-spacing: 1px; font-size: 0.9rem;">WORKFLOW UTILITIES</h3>
         <div class="tools-container">
-            <a class="tool-card" href="file-diff.html">File Diff</a>
-            <a class="tool-card" href="converter26as.html">26AS Converter</a>
-            <a class="tool-card" href="challan.html">Challan Tool</a>
-            <a class="tool-card" href="pdf-renamer.html">PDF Renamer</a>
-            <a class="tool-card" href="tds-tool.html">TDS Tool</a>
+            <a class="tool-link" href="file-diff.html">File Diff <span>Compare Datasets</span></a>
+            <a class="tool-link" href="converter26as.html">26AS Converter <span>Format Processing</span></a>
+            <a class="tool-link" href="challan.html">Challan Tool <span>Payment Generation</span></a>
+            <a class="tool-link" href="pdf-renamer.html">PDF Renamer <span>Batch Organization</span></a>
+            <a class="tool-link" href="tds-tool.html">TDS Tool <span>Calculation Suite</span></a>
         </div>
-    </div>
-
+    </section>
 </div>
 
+<script>
+    let currentMonth = 2; // March 2026
+    let currentYear = 2026;
+
+    const taxRegistry = {
+        2: [{ d: 7, l: "TDS Payment", t: "Feb Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "Advance Tax", t: "Final Q4" }, { d: 20, l: "GSTR-3B", t: "Monthly" }],
+        3: [{ d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 30, l: "TDS Payment", t: "March Deductions" }],
+        4: [{ d: 7, l: "TDS Payment", t: "April Month" }, { d: 31, l: "TDS Filing", t: "Q4 Return" }]
+    };
+
+    function build() {
+        const grid = document.getElementById('calendarGrid');
+        const list = document.getElementById('deadlineList');
+        const date = new Date(currentYear, currentMonth, 1);
+        document.getElementById('monthDisplay').innerText = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        
+        grid.innerHTML = '<div class="day-label">S</div><div class="day-label">M</div><div class="day-label">T</div><div class="day-label">W</div><div class="day-label">T</div><div class="day-label">F</div><div class="day-label">S</div>';
+        
+        const monthItems = taxRegistry[currentMonth] || [];
+        list.innerHTML = `<h4 style="margin-top:0; color:var(--accent-green); letter-spacing:1px; font-size:0.9rem;">STATUTORY CHECKLIST</h4>`;
+        monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d} (${i.t})</small></div>`);
+
+        const start = new Date(currentYear, currentMonth, 1).getDay();
+        const len = new Date(currentYear, currentMonth + 1, 0).getDate();
+        for(let i=0; i<start; i++) grid.innerHTML += '<div></div>';
+        for(let d=1; d<=len; d++) {
+            const isH = monthItems.some(i => i.d === d);
+            grid.innerHTML += `<div class="day ${isH ? 'highlight' : ''}" ${isH ? `id="date-${d}" onclick="link(${d})"` : ''}>${d}</div>`;
+        }
+        document.getElementById('connector-canvas').innerHTML = '';
+    }
+
+    function changeMonth(n) { currentMonth += n; build(); }
+
+    function link(d) {
+        const svg = document.getElementById('connector-canvas');
+        const sEl = document.getElementById(`date-${d}`);
+        const eEl = document.getElementById(`item-${d}`);
+        const mainRect = document.querySelector('.main').getBoundingClientRect();
+        
+        document.querySelectorAll('.deadline-item').forEach(el => el.classList.remove('active-deadline'));
+        eEl.classList.add('active-deadline');
+        
+        const s = sEl.getBoundingClientRect();
+        const e = eEl.getBoundingClientRect();
+
+        const x1 = s.left + s.width/2 - mainRect.left;
+        const y1 = s.top + s.height/2 - mainRect.top;
+        const x2 = e.left - mainRect.left;
+        const y2 = e.top + e.height/2 - mainRect.top;
+
+        svg.innerHTML = `<path d="M ${x1} ${y1} C ${x1+150} ${y1-40}, ${x2-150} ${y2+40}, ${x2} ${y2}" class="connection-line" />`;
+    }
+
+    build();
+</script>
 </body>
 </html>
