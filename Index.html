@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Tax Dashboard - Vadiraj</title>
+    <title>Tax Dashboard - Vadiraj</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,109 +20,81 @@
         * { box-sizing: border-box; scroll-behavior: smooth; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; overflow-x: hidden; }
 
-        /* Sidebar */
         .sidebar { width: 260px; background: var(--bg-pure); height: 100vh; position: fixed; border-right: 1px solid var(--border-color); z-index: 100; }
         .profile-area { padding: 50px 30px; border-bottom: 1px solid var(--border-color); }
-        .profile-area h2 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; color: var(--text-high); }
+        .profile-area h2 { margin: 0; font-size: 1.2rem; color: var(--text-high); }
         .profile-area p { font-size: 0.75rem; color: var(--text-low); margin-top: 5px; }
 
         .nav-item { padding: 18px 30px; cursor: pointer; transition: 0.3s; color: var(--text-low); font-size: 0.9rem; }
         .nav-item:hover { color: var(--text-high); background: #0a0a0a; }
 
-        /* Main Content */
         .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); position: relative; }
+        header { margin-bottom: 30px; }
 
-        header { margin-bottom: 40px; }
-        header h1 { font-size: 1.8rem; margin: 0; color: var(--text-high); }
-        header p { color: var(--text-low); margin-top: 5px; }
+        .calendar-nav { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+        .arrow { background: transparent; border: 1px solid var(--border-color); color: #fff; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; }
 
-        /* Calendar Controls */
-        .calendar-nav { display: flex; align-items: center; gap: 25px; margin-bottom: 30px; }
-        .arrow { background: transparent; border: 1px solid var(--border-color); color: var(--text-high); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .arrow:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .dashboard-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; position: relative; }
+        .calendar-card, .deadline-card { background: var(--card-bg); border-radius: 20px; padding: 25px; border: 1px solid var(--border-color); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; }
+        .day { aspect-ratio: 1; border-radius: 10px; background: #181818; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
+        .day.highlight { border: 1px solid var(--accent-green); color: var(--accent-green); cursor: pointer; font-weight: bold; }
 
-        .dashboard-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; position: relative; }
+        .deadline-item { padding: 15px; margin-bottom: 10px; background: #0a0a0a; border-radius: 12px; border-left: 3px solid var(--accent-green); }
+        .active-deadline { border-left-color: var(--deadline-red); background: #1a0505; }
 
-        /* Calendar & Deadlines */
-        .calendar-card, .deadline-card { background: var(--card-bg); border-radius: 24px; padding: 30px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; text-align: center; }
-        .day-label { color: var(--text-low); font-size: 0.7rem; font-weight: 700; margin-bottom: 15px; }
-        .day { aspect-ratio: 1; border-radius: 12px; background: #181818; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; border: 1px solid transparent; }
-        .day.highlight { border: 1px solid var(--accent-green); color: var(--accent-green); font-weight: 600; cursor: pointer; }
-        .day.highlight:hover { background: var(--accent-green); color: #000; transform: scale(1.1); }
-
-        .deadline-item { padding: 18px; margin-bottom: 12px; background: #0a0a0a; border-radius: 16px; border-left: 3px solid var(--accent-green); transition: 0.3s; }
-        .active-deadline { border-left-color: var(--deadline-red); background: #1a0505; transform: translateX(10px); }
-
-        /* SVG Connection Line */
         #connector-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-        .connection-line { fill: none; stroke: var(--deadline-red); stroke-width: 2; stroke-dasharray: 6; animation: dash 1s linear infinite; }
-        @keyframes dash { from { stroke-dashoffset: 12; } to { stroke-dashoffset: 0; } }
+        .connection-line { fill: none; stroke: var(--deadline-red); stroke-width: 2; stroke-dasharray: 4; animation: dash 1s linear infinite; }
+        @keyframes dash { from { stroke-dashoffset: 8; } to { stroke-dashoffset: 0; } }
 
-        /* Tools Section */
-        #tools { margin-top: 80px; }
-        .tools-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .tool-link { background: var(--card-bg); padding: 30px 20px; border-radius: 20px; text-align: center; text-decoration: none; color: var(--text-high); border: 1px solid var(--border-color); transition: 0.3s; display: block; }
-        .tool-link:hover { border-color: var(--accent-blue); transform: translateY(-5px); background: #000a15; }
-        .tool-link span { display: block; font-size: 0.75rem; color: var(--text-low); margin-top: 8px; }
+        #tools { margin-top: 60px; }
+        .tools-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .tool-link { background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; text-decoration: none; color: #fff; border: 1px solid var(--border-color); transition: 0.3s; }
+        .tool-link:hover { border-color: var(--accent-blue); transform: translateY(-5px); }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <div class="profile-area">
-        <h2>Vadiraj</h2>
-        <p>Professional Tax Workspace</p>
-    </div>
-    <div class="nav-links">
-        <div class="nav-item" onclick="window.scrollTo(0,0)">Compliance Dashboard</div>
-        <div class="nav-item" onclick="document.getElementById('tools').scrollIntoView()">Utility Tools</div>
-    </div>
+    <div class="profile-area"><h2>Vadiraj</h2><p>Tax Workspace</p></div>
+    <div class="nav-item" onclick="window.scrollTo(0,0)">Dashboard</div>
+    <div class="nav-item" onclick="document.getElementById('tools').scrollIntoView()">Tools</div>
 </div>
 
 <div class="main">
     <svg id="connector-canvas"></svg>
-
-    <header>
-        <h1>Tax Management Portal</h1>
-        <p>Welcome back. Review your upcoming statutory deadlines below.</p>
-    </header>
+    <header><h1>Compliance Status</h1></header>
 
     <div class="calendar-nav">
         <button class="arrow" onclick="changeMonth(-1)">&#10094;</button>
-        <h2 id="monthDisplay" style="margin:0; width:220px; text-align:center; letter-spacing: 1px;">March 2026</h2>
+        <h3 id="monthDisplay" style="margin:0; width:200px; text-align:center;">March 2026</h3>
         <button class="arrow" onclick="changeMonth(1)">&#10095;</button>
     </div>
 
     <div class="dashboard-grid">
-        <div class="calendar-card">
-            <div class="calendar-grid" id="calendarGrid"></div>
-        </div>
-
-        <div class="deadline-card" id="deadlineList">
-            </div>
+        <div class="calendar-card"><div class="calendar-grid" id="calendarGrid"></div></div>
+        <div class="deadline-card" id="deadlineList"></div>
     </div>
 
     <section id="tools">
-        <h3 style="color: var(--text-low); margin-bottom: 25px; letter-spacing: 1px; font-size: 0.9rem;">WORKFLOW UTILITIES</h3>
+        <h3 style="color: var(--text-low); margin-bottom: 20px;">SYSTEM TOOLS</h3>
         <div class="tools-container">
-            <a class="tool-link" href="file-diff.html">File Diff <span>Compare Datasets</span></a>
-            <a class="tool-link" href="converter26as.html">26AS Converter <span>Format Processing</span></a>
-            <a class="tool-link" href="challan.html">Challan Tool <span>Payment Generation</span></a>
-            <a class="tool-link" href="pdf-renamer.html">PDF Renamer <span>Batch Organization</span></a>
-            <a class="tool-link" href="tds-tool.html">TDS Tool <span>Calculation Suite</span></a>
+            <a class="tool-link" href="file-diff.html">File Diff</a>
+            <a class="tool-link" href="converter26as.html">26AS Converter</a>
+            <a class="tool-link" href="challan.html">Challan Tool</a>
+            <a class="tool-link" href="pdf-renamer.html">PDF Renamer</a>
+            <a class="tool-link" href="tds-tool.html">TDS Tool</a>
         </div>
     </section>
 </div>
 
 <script>
-    let currentMonth = 2; // March 2026
+    let currentMonth = 2; 
     let currentYear = 2026;
-
     const taxRegistry = {
-        2: [{ d: 7, l: "TDS Payment", t: "Feb Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "Advance Tax", t: "Final Q4" }, { d: 20, l: "GSTR-3B", t: "Monthly" }],
-        3: [{ d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 30, l: "TDS Payment", t: "March Deductions" }],
-        4: [{ d: 7, l: "TDS Payment", t: "April Month" }, { d: 31, l: "TDS Filing", t: "Q4 Return" }]
+        2: [{ d: 7, l: "TDS Payment" }, { d: 11, l: "GSTR-1" }, { d: 15, l: "Advance Tax" }, { d: 20, l: "GSTR-3B" }],
+        3: [{ d: 11, l: "GSTR-1" }, { d: 20, l: "GSTR-3B" }, { d: 30, l: "TDS Payment (March)" }],
+        4: [{ d: 7, l: "TDS Payment" }, { d: 31, l: "TDS Filing" }]
     };
 
     function build() {
@@ -131,11 +103,11 @@
         const date = new Date(currentYear, currentMonth, 1);
         document.getElementById('monthDisplay').innerText = date.toLocaleString('default', { month: 'long', year: 'numeric' });
         
-        grid.innerHTML = '<div class="day-label">S</div><div class="day-label">M</div><div class="day-label">T</div><div class="day-label">W</div><div class="day-label">T</div><div class="day-label">F</div><div class="day-label">S</div>';
+        grid.innerHTML = '<div style="font-size:0.7rem; color:#444">S</div><div style="font-size:0.7rem; color:#444">M</div><div style="font-size:0.7rem; color:#444">T</div><div style="font-size:0.7rem; color:#444">W</div><div style="font-size:0.7rem; color:#444">T</div><div style="font-size:0.7rem; color:#444">F</div><div style="font-size:0.7rem; color:#444">S</div>';
         
         const monthItems = taxRegistry[currentMonth] || [];
-        list.innerHTML = `<h4 style="margin-top:0; color:var(--accent-green); letter-spacing:1px; font-size:0.9rem;">STATUTORY CHECKLIST</h4>`;
-        monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d} (${i.t})</small></div>`);
+        list.innerHTML = `<h4 style="margin-top:0; color:var(--accent-green)">Checklist</h4>`;
+        monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d}</small></div>`);
 
         const start = new Date(currentYear, currentMonth, 1).getDay();
         const len = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -148,27 +120,15 @@
     }
 
     function changeMonth(n) { currentMonth += n; build(); }
-
     function link(d) {
         const svg = document.getElementById('connector-canvas');
-        const sEl = document.getElementById(`date-${d}`);
-        const eEl = document.getElementById(`item-${d}`);
-        const mainRect = document.querySelector('.main').getBoundingClientRect();
-        
+        const sR = document.getElementById(`date-${d}`).getBoundingClientRect();
+        const eR = document.getElementById(`item-${d}`).getBoundingClientRect();
+        const m = document.querySelector('.main').getBoundingClientRect();
         document.querySelectorAll('.deadline-item').forEach(el => el.classList.remove('active-deadline'));
-        eEl.classList.add('active-deadline');
-        
-        const s = sEl.getBoundingClientRect();
-        const e = eEl.getBoundingClientRect();
-
-        const x1 = s.left + s.width/2 - mainRect.left;
-        const y1 = s.top + s.height/2 - mainRect.top;
-        const x2 = e.left - mainRect.left;
-        const y2 = e.top + e.height/2 - mainRect.top;
-
-        svg.innerHTML = `<path d="M ${x1} ${y1} C ${x1+150} ${y1-40}, ${x2-150} ${y2+40}, ${x2} ${y2}" class="connection-line" />`;
+        document.getElementById(`item-${d}`).classList.add('active-deadline');
+        svg.innerHTML = `<path d="M ${sR.left + sR.width/2 - m.left} ${sR.top + sR.height/2 - m.top} C ${sR.left + 200 - m.left} ${sR.top - m.top}, ${eR.left - 100 - m.left} ${eR.top - m.top}, ${eR.left - m.left} ${eR.top + eR.height/2 - m.top}" class="connection-line" />`;
     }
-
     build();
 </script>
 </body>
