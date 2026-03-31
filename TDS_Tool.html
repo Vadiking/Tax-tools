@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Tax Toolkit - Professional Tax Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ========================================= */
+        /* 1. UNIVERSAL DASHBOARD TEMPLATE STYLES    */
+        /* ========================================= */
+        :root {
+            --bg-pure: #000000;
+            --card-bg: #111111;
+            --accent-green: #00ff88; 
+            --accent-blue: #00a2ff;  
+            --text-high: #ffffff;
+            --text-low: #888888;
+            --deadline-red: #ff3333;
+            --border-color: #222222;
+            --warning: #fbbf24;
+        }
+
+        * { box-sizing: border-box; scroll-behavior: smooth; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+
+        /* Main Content - Expanded to Full Width */
+        .main { padding: 40px; width: 100%; max-width: 1600px; margin: 0 auto; position: relative; min-height: 100vh; }
+
+        header { margin-bottom: 30px; }
+        header h1 { font-size: 1.8rem; margin: 0; color: var(--text-high); display: flex; align-items: center; gap: 15px; }
+        header p { color: var(--text-low); margin-top: 5px; }
+        
+        /* Back Button */
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: var(--accent-blue); text-decoration: none; font-size: 0.9rem; font-weight: 500; margin-bottom: 20px; transition: 0.2s; }
+        .back-btn:hover { color: var(--text-high); transform: translateX(-5px); }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-pure); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-low); }
+
+        /* ========================================= */
+        /* 2. TDS TOOL SPECIFIC STYLES               */
+        /* ========================================= */
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
+        .tab-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px 25px; border-radius: 12px; color: var(--text-high); font-size: 1rem; cursor: pointer; transition: 0.3s; font-weight: 500; }
+        .tab-btn:hover, .tab-btn.active { border-color: var(--accent-blue); background: #000a15; transform: translateY(-2px); }
+        
+        .tab-btn.settings-tab { border-color: rgba(251, 191, 36, 0.3); color: var(--warning); }
+        .tab-btn.settings-tab.active { background: rgba(251, 191, 36, 0.1); border-color: var(--warning); }
+
+        /* Section Containers */
+        .section-container { display: none; background: var(--card-bg); border-radius: 24px; padding: 40px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 40px; }
+        .section-container.active { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; animation: fadeIn 0.4s; }
+        #settings.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-high); }
+        .form-control { width: 100%; padding: 12px 15px; background: #0a0a0a; color: var(--text-high); border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; font-family: 'Inter', sans-serif; }
+        .form-control:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(0, 162, 255, 0.15); }
+        
+        /* Explanation & Result Boxes */
+        .explanation-box { background: rgba(0, 162, 255, 0.05); border-left: 4px solid var(--accent-blue); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+        .explanation-box h4 { color: var(--accent-blue); margin-top: 0; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .explanation-box p { margin-bottom: 0.5rem; color: var(--text-low); font-size: 0.95rem; }
+        .explanation-box p:last-child { margin-bottom: 0; }
+
+        .result-box { background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; height: fit-content; position: sticky; top: 20px; }
+        .result-box h3 { margin-top: 0; color: var(--text-high); }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 1.05rem; color: var(--text-high); align-items: center; }
+        .result-row span:first-child { color: var(--text-low); }
+        .result-row.total { font-weight: 700; font-size: 1.4rem; color: var(--accent-green); margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px dashed var(--border-color); }
+        .result-row.total span:first-child { color: var(--text-high); }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-success { background: rgba(0, 255, 136, 0.15); color: var(--accent-green); border: 1px solid rgba(0, 255, 136, 0.3); }
+        .badge-danger { background: rgba(255, 51, 51, 0.15); color: var(--deadline-red); border: 1px solid rgba(255, 51, 51, 0.3); }
+
+        /* Settings Table */
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
+        .settings-header h2 { margin: 0; color: var(--text-high); }
+        .btn-action { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; color: #000; }
+        .btn-save { background-color: var(--accent-green); }
+        .btn-save:hover { background-color: #00cc6a; transform: translateY(-2px); }
+        .btn-reset { background-color: var(--deadline-red); margin-left: 10px; color: #fff; }
+        .btn-reset:hover { background-color: #cc0000; transform: translateY(-2px); }
+
+        .settings-table-wrapper { overflow-x: auto; margin-bottom: 2.5rem; background: #0a0a0a; border-radius: 12px; border: 1px solid var(--border-color); }
+        .settings-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .settings-table th, .settings-table td { padding: 1.2rem; border-bottom: 1px solid var(--border-color); color: var(--text-high); vertical-align: middle; }
+        .settings-table th { background: #111; font-weight: 600; color: var(--text-low); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+        .settings-table input { width: 120px; padding: 10px; background: #000; color: var(--text-high); border: 1px solid var(--border-color); border-radius: 6px; margin-left: 10px; font-family: 'Inter', sans-serif; }
+        .settings-table input:focus { outline: none; border-color: var(--accent-blue); }
+        .rate-input-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; color: var(--text-low); }
+        .rate-input-group:last-child { margin-bottom: 0; }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 768px) {
+            .section-container.active { grid-template-columns: 1fr; }
+            .settings-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main">
+    <a href="index.html" class="back-btn">← Back to Dashboard</a>
+    
+    <header>
+        <h1><div style="font-size: 1.5rem; padding: 8px 12px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color);">🧮</div> Dynamic Tax Toolkit</h1>
+        <p>Comprehensive calculation suite for TDS, TCS, and Advance Tax with editable statutory rules.</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tds')">TDS Calculator</button>
+        <button class="tab-btn" onclick="switchTab('tcs')">TCS Calculator</button>
+        <button class="tab-btn" onclick="switchTab('advance')">Advance Tax</button>
+        <button class="tab-btn settings-tab" onclick="switchTab('settings')">⚙️ Settings & Rules</button>
+    </div>
+
+    <div id="tds" class="section-container active">
+        <div class="input-section">
+            <div class="form-group">
+                <label for="tds-section">Select Nature of Payment (Section)</label>
+                <select id="tds-section" class="form-control" onchange="updateTdsUI()">
+                    <option value="" disabled selected>-- Select Section --</option>
+                </select>
+            </div>
+
+            <div id="tds-explanation" class="explanation-box hidden">
+                <h4 id="tds-exp-title"></h4>
+                <p id="tds-exp-desc"></p>
+                <p><strong>Example:</strong> <span id="tds-exp-ex" style="color: var(--text-high);"></span></p>
+                <p><strong>Threshold Rule:</strong> <span id="tds-exp-thresh" style="color: var(--text-high);"></span></p>
+            </div>
+
+            <div class="form-group hidden" id="tds-payee-group">
+                <label for="tds-payee">Payee Type</label>
+                <select id="tds-payee" class="form-control" onchange="calculateTds()">
+                    <option value="ind_huf">Individual / HUF</option>
+                    <option value="others">Others (Company, Firm, etc.)</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="tds-date-group">
+                <label for="tds-date">Payment Date</label>
+                <select id="tds-date" class="form-control" onchange="calculateTds()">
+                    <option value="before">Till 30.09.2024</option>
+                    <option value="after">From 01.10.2024</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="tds-pan-group">
+                <label for="tds-pan">PAN Furnished?</label>
+                <select id="tds-pan" class="form-control" onchange="calculateTds()">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tds-amount">Transaction Amount (₹)</label>
+                <input type="number" id="tds-amount" class="form-control" placeholder="Enter amount" oninput="calculateTds()">
+            </div>
+        </div>
+
+        <div class="output-section">
+            <div class="result-box">
+                <h3 style="border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; padding-bottom: 1rem;">Calculation Summary</h3>
+                <div class="result-row">
+                    <span>Amount Entered:</span>
+                    <span id="tds-res-amount">₹0</span>
+                </div>
+                <div class="result-row">
+                    <span>Threshold Limit:</span>
+                    <span id="tds-res-limit">₹0</span>
+                </div>
+                <div class="result-row">
+                    <span>Threshold Status:</span>
+                    <span id="tds-res-status">-</span>
+                </div>
+                <div class="result-row">
+                    <span>Applicable Rate:</span>
+                    <span id="tds-res-rate">0%</span>
+                </div>
+                <div class="result-row total">
+                    <span>Final TDS Amount:</span>
+                    <span id="tds-res-tax">₹0</span>
+                </div>
+                <p id="tds-res-note" style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-low);"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="tcs" class="section-container">
+        <div class="input-section">
+            <div class="form-group">
+                <label for="tcs-section">Select Nature of Collection (Section)</label>
+                <select id="tcs-section" class="form-control" onchange="updateTcsUI()">
+                    <option value="" disabled selected>-- Select Section --</option>
+                </select>
+            </div>
+
+            <div id="tcs-explanation" class="explanation-box hidden">
+                <h4 id="tcs-exp-title"></h4>
+                <p id="tcs-exp-desc"></p>
+                <p><strong>Example:</strong> <span id="tcs-exp-ex" style="color: var(--text-high);"></span></p>
+                <p><strong>Rule:</strong> <span id="tcs-exp-thresh" style="color: var(--text-high);"></span></p>
+            </div>
+
+            <div class="form-group hidden" id="tcs-pan-group">
+                <label for="tcs-pan">PAN/Aadhaar Furnished?</label>
+                <select id="tcs-pan" class="form-control" onchange="calculateTcs()">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tcs-amount">Transaction Amount (₹)</label>
+                <input type="number" id="tcs-amount" class="form-control" placeholder="Enter amount" oninput="calculateTcs()">
+            </div>
+        </div>
+
+        <div class="output-section">
+            <div class="result-box">
+                <h3 style="border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; padding-bottom: 1rem;">Calculation Summary</h3>
+                <div class="result-row">
+                    <span>Amount Entered:</span>
+                    <span id="tcs-res-amount">₹0</span>
+                </div>
+                <div class="result-row">
+                    <span>Threshold Check:</span>
+                    <span id="tcs-res-status">-</span>
+                </div>
+                <div class="result-row">
+                    <span>Applicable Rate:</span>
+                    <span id="tcs-res-rate">0%</span>
+                </div>
+                <div class="result-row total">
+                    <span>Final TCS Amount:</span>
+                    <span id="tcs-res-tax">₹0</span>
+                </div>
+                <p id="tcs-res-note" style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-low);"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="advance" class="section-container">
+        <div class="input-section">
+            <div class="explanation-box">
+                <h4>Advance Tax Installments</h4>
+                <p>Advance tax is paid during the financial year by estimating current year income. It is mandatory if estimated tax liability meets the threshold.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="adv-type">Assessee Type</label>
+                <select id="adv-type" class="form-control" onchange="calculateAdvanceTax()">
+                    <option value="normal">Normal (Individuals, Companies, etc.)</option>
+                    <option value="44AD">Presumptive Taxation (Sec 44AD/44ADA)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="adv-tax">Estimated Net Tax Liability for the Year (₹)</label>
+                <input type="number" id="adv-tax" class="form-control" placeholder="Enter tax amount after TDS/TCS" oninput="calculateAdvanceTax()">
+            </div>
+        </div>
+
+        <div class="output-section">
+            <div class="result-box" style="padding-bottom: 1rem;">
+                <h3 style="border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; padding-bottom: 1rem;">Installment Schedule</h3>
+                <div class="result-row">
+                    <span>Total Tax Liability:</span>
+                    <span id="adv-res-total">₹0</span>
+                </div>
+                <div class="result-row" style="margin-bottom: 1.5rem;">
+                    <span>Status:</span>
+                    <span id="adv-res-status">-</span>
+                </div>
+                
+                <table class="settings-table hidden" id="adv-table" style="background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);">
+                    <thead>
+                        <tr>
+                            <th style="background: #111;">Due Date</th>
+                            <th style="background: #111;">Cum. %</th>
+                            <th style="background: #111;">Amount Payable</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adv-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings" class="section-container">
+        <div class="settings-header">
+            <h2>Rule Settings</h2>
+            <div>
+                <button class="btn-action btn-save" onclick="saveSettings()">Save Changes</button>
+                <button class="btn-action btn-reset" onclick="resetSettings()">Reset to Defaults</button>
+            </div>
+        </div>
+        <p style="color: var(--text-low); margin-bottom: 2.5rem;">Changes made here will automatically save to your browser and apply to all future calculations across the dashboard.</p>
+        
+        <h3 style="margin-bottom: 1rem; color: var(--accent-blue);">Advance Tax Rules</h3>
+        <div class="settings-table-wrapper">
+            <table class="settings-table" id="settings-adv-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Rule Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-high);">Minimum Liability Threshold (₹)</strong></td>
+                        <td><input type="number" id="set-adv-thresh" value="10000"></td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-high);">Normal Installment 1 (%)</strong> - 15th June</td>
+                        <td><input type="number" step="0.1" id="set-adv-norm-1" value="15"></td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-high);">Normal Installment 2 (%)</strong> - 15th September</td>
+                        <td><input type="number" step="0.1" id="set-adv-norm-2" value="45"></td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-high);">Normal Installment 3 (%)</strong> - 15th December</td>
+                        <td><input type="number" step="0.1" id="set-adv-norm-3" value="75"></td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-high);">Normal Installment 4 (%)</strong> - 15th March</td>
+                        <td><input type="number" step="0.1" id="set-adv-norm-4" value="100"></td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-high);">Presumptive Installment (%)</strong> - 15th March</td>
+                        <td><input type="number" step="0.1" id="set-adv-presumptive" value="100"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 style="margin-bottom: 1rem; color: var(--accent-blue); margin-top: 2rem;">TDS Rules</h3>
+        <div class="settings-table-wrapper">
+            <table class="settings-table" id="settings-tds-table">
+                <thead>
+                    <tr>
+                        <th>Section</th>
+                        <th>Threshold Limit (₹)</th>
+                        <th>Applicable Rates (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 style="margin-bottom: 1rem; color: var(--accent-blue); margin-top: 2rem;">TCS Rules</h3>
+        <div class="settings-table-wrapper">
+            <table class="settings-table" id="settings-tcs-table">
+                <thead>
+                    <tr>
+                        <th>Section</th>
+                        <th>Threshold Limit (₹)</th>
+                        <th>Applicable Rates (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+
+    const defaultAdvData = {
+        threshold: 10000,
+        normalInstalments: [15, 45, 75, 100],
+        presumptiveInstalment: 100
+    };
+
+    const defaultTdsData = {
+        "192A": { title: "192A - EPF Withdrawal", desc: "Premature withdrawal from EPF.", ex: "If taxable withdrawal is ₹60k, TDS is 10%.", thresh: 50000, rate: 10 },
+        "194B": { title: "194B/BB - Lottery/Horse Race", desc: "Winnings from lotteries, card games, horse races.", ex: "Winning ₹15k means 30% TDS.", thresh: 10000, rate: 30 },
+        "194C": { title: "194C - Contracts", desc: "Payments to contractors.", ex: "Aggregate > ₹1 Lakh attracts TDS.", thresh: 100000, requiresPayee: true, rateIndHuf: 1, rateOthers: 2 },
+        "194D": { title: "194D - Insurance Commission", desc: "Commission paid for insurance business.", ex: "Commission of ₹20k attracts 5% TDS.", thresh: 15000, rate: 5 },
+        "194DA": { title: "194DA - Life Insurance Maturity", desc: "Maturity proceeds of Life Insurance Policy.", ex: "Proceeds > ₹1 Lakh attracts TDS.", thresh: 100000, requiresDate: true, rateBefore: 5, rateAfter: 2 },
+        "194H": { title: "194H - Commission/Brokerage", desc: "Commission or Brokerage payments.", ex: "Payment > ₹15k attracts TDS.", thresh: 15000, requiresDate: true, rateBefore: 5, rateAfter: 2 },
+        "194I_PM": { title: "194I - Rent (Plant/Machinery)", desc: "Rent for plant, machinery or equipment.", ex: "Rent > ₹2.4 Lakhs p.a. attracts 2% TDS.", thresh: 240000, rate: 2 },
+        "194I_LB": { title: "194I - Rent (Land/Building)", desc: "Rent for land, building or furniture.", ex: "Rent > ₹2.4 Lakhs p.a. attracts 10% TDS.", thresh: 240000, rate: 10 },
+        "194IA": { title: "194IA - Immovable Property", desc: "Transfer of immovable property.", ex: "Property consideration >= ₹50 Lakhs attracts 1% TDS.", thresh: 5000000, strictGreaterEqual: true, rate: 1 },
+        "194J_Prof": { title: "194J - Professional/Technical", desc: "Fees for professional/technical services.", ex: "Professional fees > ₹30k attracts 10% TDS.", thresh: 30000, rate: 10 },
+        "194N": { title: "194N - Cash Withdrawal", desc: "Cash withdrawal from Banks.", ex: "Withdrawal > ₹1 Crore attracts 2% TDS on EXCESS amount.", thresh: 10000000, excessOnly: true, rate: 2 },
+        "194Q": { title: "194Q - Purchase of Goods", desc: "Purchase of goods by buyer with T/O > 10Cr.", ex: "Purchases > ₹50 Lakhs attracts 0.1% TDS on EXCESS amount.", thresh: 5000000, excessOnly: true, requiresPAN: true, rate: 0.1, noPanRate: 5 },
+        "194R": { title: "194R - Business Benefit/Perquisite", desc: "Benefit/perquisite arising from business/profession.", ex: "Gift to distributor > ₹20k attracts 10% TDS.", thresh: 20000, rate: 10 }
+    };
+
+    const defaultTcsData = {
+        "206C_liquor": { title: "206C(1) - Alcoholic Liquor", desc: "Sale of Alcoholic liquor.", ex: "Applies on all retail sales.", thresh: 0, rate: 1 },
+        "206C_tendu": { title: "206C(1) - Tendu Leaves", desc: "Sale of Tendu leaves.", ex: "Applies on all sales.", thresh: 0, rate: 5 },
+        "206C_timber": { title: "206C(1) - Timber / Forest Produce", desc: "Sale of timber or any other forest produce.", ex: "Applies on all sales.", thresh: 0, rate: 2.5 },
+        "206C_scrap": { title: "206C(1) - Scrap / Minerals", desc: "Sale of scrap, coal, lignite.", ex: "Applies on all sales.", thresh: 0, rate: 1 },
+        "206C1C": { title: "206C(1C) - Parking/Toll/Mining", desc: "Leasing/Licensing of parking lot, toll plaza.", ex: "Applies irrespective of amount.", thresh: 0, rate: 2 },
+        "206C1F": { title: "206C(1F) - Motor Vehicle", desc: "Sale of motor vehicle exceeding ₹10 Lakhs.", ex: "Vehicle worth ₹12L attracts 1% TCS on total value.", thresh: 1000000, requireThreshold: true, rate: 1 },
+        "206C1H": { title: "206C(1H) - Sale of Goods", desc: "Receipt of consideration for sale of goods.", ex: "Receipt > ₹50 Lakhs attracts 0.1% on EXCESS amount.", thresh: 5000000, excessOnly: true, requireThreshold: true, requiresPAN: true, rate: 0.1, noPanRate: 1 }
+    };
+
+    let appAdvData = {};
+    let appTdsData = {};
+    let appTcsData = {};
+
+    function init() {
+        const savedAdv = localStorage.getItem('customAdvRules');
+        const savedTds = localStorage.getItem('customTdsRules');
+        const savedTcs = localStorage.getItem('customTcsRules');
+        
+        appAdvData = savedAdv ? JSON.parse(savedAdv) : JSON.parse(JSON.stringify(defaultAdvData));
+        appTdsData = savedTds ? JSON.parse(savedTds) : JSON.parse(JSON.stringify(defaultTdsData));
+        appTcsData = savedTcs ? JSON.parse(savedTcs) : JSON.parse(JSON.stringify(defaultTcsData));
+
+        populateDropdowns();
+        renderSettingsUI();
+    }
+
+    function populateDropdowns() {
+        const tdsSelect = document.getElementById('tds-section');
+        const tcsSelect = document.getElementById('tcs-section');
+        
+        tdsSelect.innerHTML = '<option value="" disabled selected>-- Select Section --</option>';
+        for (const [key, val] of Object.entries(appTdsData)) {
+            tdsSelect.innerHTML += `<option value="${key}">${val.title}</option>`;
+        }
+
+        tcsSelect.innerHTML = '<option value="" disabled selected>-- Select Section --</option>';
+        for (const [key, val] of Object.entries(appTcsData)) {
+            tcsSelect.innerHTML += `<option value="${key}">${val.title}</option>`;
+        }
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.section-container').forEach(sec => sec.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    function renderSettingsUI() {
+        document.getElementById('set-adv-thresh').value = appAdvData.threshold;
+        document.getElementById('set-adv-norm-1').value = appAdvData.normalInstalments[0];
+        document.getElementById('set-adv-norm-2').value = appAdvData.normalInstalments[1];
+        document.getElementById('set-adv-norm-3').value = appAdvData.normalInstalments[2];
+        document.getElementById('set-adv-norm-4').value = appAdvData.normalInstalments[3];
+        document.getElementById('set-adv-presumptive').value = appAdvData.presumptiveInstalment;
+
+        const tdsTbody = document.querySelector('#settings-tds-table tbody');
+        tdsTbody.innerHTML = '';
+        for (const [key, data] of Object.entries(appTdsData)) {
+            let ratesHtml = '';
+            
+            if (data.requiresPayee) {
+                ratesHtml += `
+                    <div class="rate-input-group">Ind/HUF: <input type="number" step="0.1" id="set-tds-ind-${key}" value="${data.rateIndHuf}"></div>
+                    <div class="rate-input-group">Others: <input type="number" step="0.1" id="set-tds-oth-${key}" value="${data.rateOthers}"></div>
+                `;
+            } else if (data.requiresDate) {
+                ratesHtml += `
+                    <div class="rate-input-group">Till 30.09.24: <input type="number" step="0.1" id="set-tds-bef-${key}" value="${data.rateBefore}"></div>
+                    <div class="rate-input-group">From 01.10.24: <input type="number" step="0.1" id="set-tds-aft-${key}" value="${data.rateAfter}"></div>
+                `;
+            } else {
+                ratesHtml += `<div class="rate-input-group">Standard: <input type="number" step="0.1" id="set-tds-std-${key}" value="${data.rate}"></div>`;
+            }
+
+            if (data.requiresPAN) {
+                ratesHtml += `<div class="rate-input-group">Without PAN: <input type="number" step="0.1" id="set-tds-nopan-${key}" value="${data.noPanRate}"></div>`;
+            }
+
+            tdsTbody.innerHTML += `
+                <tr>
+                    <td><strong style="color: var(--text-high);">${data.title}</strong></td>
+                    <td><input type="number" id="set-tds-thresh-${key}" value="${data.thresh}"></td>
+                    <td>${ratesHtml}</td>
+                </tr>
+            `;
+        }
+
+        const tcsTbody = document.querySelector('#settings-tcs-table tbody');
+        tcsTbody.innerHTML = '';
+        for (const [key, data] of Object.entries(appTcsData)) {
+            let ratesHtml = `<div class="rate-input-group">Standard: <input type="number" step="0.1" id="set-tcs-std-${key}" value="${data.rate}"></div>`;
+            
+            if (data.requiresPAN) {
+                ratesHtml += `<div class="rate-input-group">Without PAN: <input type="number" step="0.1" id="set-tcs-nopan-${key}" value="${data.noPanRate}"></div>`;
+            }
+
+            tcsTbody.innerHTML += `
+                <tr>
+                    <td><strong style="color: var(--text-high);">${data.title}</strong></td>
+                    <td><input type="number" id="set-tcs-thresh-${key}" value="${data.thresh}"></td>
+                    <td>${ratesHtml}</td>
+                </tr>
+            `;
+        }
+    }
+
+    function saveSettings() {
+        appAdvData.threshold = parseFloat(document.getElementById('set-adv-thresh').value) || 0;
+        appAdvData.normalInstalments[0] = parseFloat(document.getElementById('set-adv-norm-1').value) || 0;
+        appAdvData.normalInstalments[1] = parseFloat(document.getElementById('set-adv-norm-2').value) || 0;
+        appAdvData.normalInstalments[2] = parseFloat(document.getElementById('set-adv-norm-3').value) || 0;
+        appAdvData.normalInstalments[3] = parseFloat(document.getElementById('set-adv-norm-4').value) || 0;
+        appAdvData.presumptiveInstalment = parseFloat(document.getElementById('set-adv-presumptive').value) || 0;
+
+        for (const [key, data] of Object.entries(appTdsData)) {
+            data.thresh = parseFloat(document.getElementById(`set-tds-thresh-${key}`).value) || 0;
+            
+            if (data.requiresPayee) {
+                data.rateIndHuf = parseFloat(document.getElementById(`set-tds-ind-${key}`).value) || 0;
+                data.rateOthers = parseFloat(document.getElementById(`set-tds-oth-${key}`).value) || 0;
+            } else if (data.requiresDate) {
+                data.rateBefore = parseFloat(document.getElementById(`set-tds-bef-${key}`).value) || 0;
+                data.rateAfter = parseFloat(document.getElementById(`set-tds-aft-${key}`).value) || 0;
+            } else {
+                data.rate = parseFloat(document.getElementById(`set-tds-std-${key}`).value) || 0;
+            }
+
+            if (data.requiresPAN) {
+                data.noPanRate = parseFloat(document.getElementById(`set-tds-nopan-${key}`).value) || 0;
+            }
+        }
+
+        for (const [key, data] of Object.entries(appTcsData)) {
+            data.thresh = parseFloat(document.getElementById(`set-tcs-thresh-${key}`).value) || 0;
+            data.rate = parseFloat(document.getElementById(`set-tcs-std-${key}`).value) || 0;
+            
+            if (data.requiresPAN) {
+                data.noPanRate = parseFloat(document.getElementById(`set-tcs-nopan-${key}`).value) || 0;
+            }
+        }
+
+        localStorage.setItem('customAdvRules', JSON.stringify(appAdvData));
+        localStorage.setItem('customTdsRules', JSON.stringify(appTdsData));
+        localStorage.setItem('customTcsRules', JSON.stringify(appTcsData));
+        
+        alert("Rules have been updated successfully!");
+        
+        if(document.getElementById('tds-section').value) calculateTds();
+        if(document.getElementById('tcs-section').value) calculateTcs();
+        calculateAdvanceTax();
+    }
+
+    function resetSettings() {
+        if(confirm("Are you sure you want to reset all rules to their default PDF values?")) {
+            localStorage.removeItem('customAdvRules');
+            localStorage.removeItem('customTdsRules');
+            localStorage.removeItem('customTcsRules');
+            init();
+            alert("Rules reset to defaults.");
+        }
+    }
+
+    function updateTdsUI() {
+        const sec = document.getElementById('tds-section').value;
+        const data = appTdsData[sec];
+        if (!data) return;
+
+        document.getElementById('tds-explanation').classList.remove('hidden');
+        document.getElementById('tds-exp-title').innerText = data.title;
+        document.getElementById('tds-exp-desc').innerText = data.desc;
+        document.getElementById('tds-exp-ex').innerText = data.ex;
+        document.getElementById('tds-exp-thresh').innerText = data.strictGreaterEqual ? `>= ${formatCurrency(data.thresh)}` : `> ${formatCurrency(data.thresh)}`;
+
+        document.getElementById('tds-payee-group').classList.toggle('hidden', !data.requiresPayee);
+        document.getElementById('tds-date-group').classList.toggle('hidden', !data.requiresDate);
+        document.getElementById('tds-pan-group').classList.toggle('hidden', !data.requiresPAN);
+
+        calculateTds();
+    }
+
+    function calculateTds() {
+        const sec = document.getElementById('tds-section').value;
+        const amt = parseFloat(document.getElementById('tds-amount').value) || 0;
+        if (!sec) return;
+
+        const data = appTdsData[sec];
+        const payee = document.getElementById('tds-payee').value;
+        const date = document.getElementById('tds-date').value;
+        const pan = document.getElementById('tds-pan').value;
+
+        document.getElementById('tds-res-amount').innerText = formatCurrency(amt);
+        document.getElementById('tds-res-limit').innerText = formatCurrency(data.thresh);
+
+        let isExceeded = data.strictGreaterEqual ? (amt >= data.thresh) : (amt > data.thresh);
+        let statusHtml = isExceeded 
+            ? `<span class="badge badge-danger">Threshold Exceeded</span>` 
+            : `<span class="badge badge-success">Within Limit</span>`;
+        document.getElementById('tds-res-status').innerHTML = statusHtml;
+
+        let applicableRate = 0;
+        
+        if (data.requiresPayee) {
+            applicableRate = (payee === 'ind_huf') ? data.rateIndHuf : data.rateOthers;
+        } else if (data.requiresDate) {
+            applicableRate = (date === 'before') ? data.rateBefore : data.rateAfter;
+        } else {
+            applicableRate = data.rate;
+        }
+
+        if (data.requiresPAN && pan === 'no' && isExceeded) {
+            applicableRate = data.noPanRate;
+        }
+
+        document.getElementById('tds-res-rate').innerText = isExceeded ? `${applicableRate}%` : '0%';
+
+        let taxAmount = 0;
+        let note = "";
+        if (isExceeded) {
+            if (data.excessOnly) {
+                taxAmount = (amt - data.thresh) * (applicableRate / 100);
+                note = `TDS is calculated only on the excess amount: ${formatCurrency(amt)} - ${formatCurrency(data.thresh)} = ${formatCurrency(amt - data.thresh)}`;
+            } else {
+                taxAmount = amt * (applicableRate / 100);
+                note = "TDS is calculated on the entire amount.";
+            }
+        } else {
+            note = "No TDS applicable as amount is within the threshold limit.";
+        }
+
+        document.getElementById('tds-res-tax').innerText = formatCurrency(taxAmount);
+        document.getElementById('tds-res-note').innerText = note;
+    }
+
+    function updateTcsUI() {
+        const sec = document.getElementById('tcs-section').value;
+        const data = appTcsData[sec];
+        if (!data) return;
+
+        document.getElementById('tcs-explanation').classList.remove('hidden');
+        document.getElementById('tcs-exp-title').innerText = data.title;
+        document.getElementById('tcs-exp-desc').innerText = data.desc;
+        document.getElementById('tcs-exp-ex').innerText = data.ex;
+        document.getElementById('tcs-exp-thresh').innerText = data.requireThreshold ? `> ${formatCurrency(data.thresh)}` : 'No Limit (Applies from ₹1)';
+
+        document.getElementById('tcs-pan-group').classList.toggle('hidden', !data.requiresPAN);
+
+        calculateTcs();
+    }
+
+    function calculateTcs() {
+        const sec = document.getElementById('tcs-section').value;
+        const amt = parseFloat(document.getElementById('tcs-amount').value) || 0;
+        if (!sec) return;
+
+        const data = appTcsData[sec];
+        const pan = document.getElementById('tcs-pan').value;
+
+        document.getElementById('tcs-res-amount').innerText = formatCurrency(amt);
+
+        let isApplicable = true;
+        if (data.requireThreshold) {
+            isApplicable = amt > data.thresh;
+        }
+
+        let statusHtml = isApplicable 
+            ? `<span class="badge badge-danger">TCS Applicable</span>` 
+            : `<span class="badge badge-success">TCS Not Applicable</span>`;
+        document.getElementById('tcs-res-status').innerHTML = statusHtml;
+
+        let applicableRate = data.rate; 
+        if (data.requiresPAN && pan === 'no' && isApplicable) applicableRate = data.noPanRate;
+
+        document.getElementById('tcs-res-rate').innerText = isApplicable ? `${applicableRate}%` : '0%';
+
+        let taxAmount = 0;
+        let note = "";
+        
+        if (isApplicable) {
+            if (data.excessOnly) {
+                taxAmount = (amt - data.thresh) * (applicableRate / 100);
+                note = `TCS is calculated only on the excess amount: ${formatCurrency(amt)} - ${formatCurrency(data.thresh)} = ${formatCurrency(amt - data.thresh)}`;
+            } else {
+                taxAmount = amt * (applicableRate / 100);
+                note = "TCS is calculated on the entire transaction amount.";
+            }
+        } else {
+            note = "Amount is below the specified threshold for TCS collection.";
+        }
+
+        document.getElementById('tcs-res-tax').innerText = formatCurrency(taxAmount);
+        document.getElementById('tcs-res-note').innerText = note;
+    }
+
+    function calculateAdvanceTax() {
+        const type = document.getElementById('adv-type').value;
+        const taxLiab = parseFloat(document.getElementById('adv-tax').value) || 0;
+        
+        document.getElementById('adv-res-total').innerText = formatCurrency(taxLiab);
+        const table = document.getElementById('adv-table');
+        const tbody = document.getElementById('adv-tbody');
+        tbody.innerHTML = '';
+
+        if (taxLiab < appAdvData.threshold) {
+            document.getElementById('adv-res-status').innerHTML = `<span class="badge badge-success">No Advance Tax Required (Liability < ${formatCurrency(appAdvData.threshold)})</span>`;
+            table.classList.add('hidden');
+            return;
+        }
+
+        document.getElementById('adv-res-status').innerHTML = `<span class="badge badge-danger">Advance Tax Required</span>`;
+        table.classList.remove('hidden');
+
+        if (type === '44AD') {
+            tbody.innerHTML = `
+                <tr>
+                    <td>On or before 15th March</td>
+                    <td>${appAdvData.presumptiveInstalment}%</td>
+                    <td><strong style="color: var(--text-high);">${formatCurrency(taxLiab * (appAdvData.presumptiveInstalment / 100))}</strong></td>
+                </tr>
+            `;
+        } else {
+            const inst1 = taxLiab * (appAdvData.normalInstalments[0] / 100);
+            const inst2 = taxLiab * (appAdvData.normalInstalments[1] / 100);
+            const inst3 = taxLiab * (appAdvData.normalInstalments[2] / 100);
+            const inst4 = taxLiab * (appAdvData.normalInstalments[3] / 100);
+
+            tbody.innerHTML = `
+                <tr>
+                    <td>On or before 15th June</td>
+                    <td>${appAdvData.normalInstalments[0]}%</td>
+                    <td><strong style="color: var(--text-high);">${formatCurrency(inst1)}</strong></td>
+                </tr>
+                <tr>
+                    <td>On or before 15th September</td>
+                    <td>${appAdvData.normalInstalments[1]}%</td>
+                    <td><strong style="color: var(--text-high);">${formatCurrency(inst2)}</strong> <span style="font-size: 0.8rem; color: var(--text-low);">(Cumulative)</span></td>
+                </tr>
+                <tr>
+                    <td>On or before 15th December</td>
+                    <td>${appAdvData.normalInstalments[2]}%</td>
+                    <td><strong style="color: var(--text-high);">${formatCurrency(inst3)}</strong> <span style="font-size: 0.8rem; color: var(--text-low);">(Cumulative)</span></td>
+                </tr>
+                <tr>
+                    <td>On or before 15th March</td>
+                    <td>${appAdvData.normalInstalments[3]}%</td>
+                    <td><strong style="color: var(--text-high);">${formatCurrency(inst4)}</strong> <span style="font-size: 0.8rem; color: var(--text-low);">(Cumulative)</span></td>
+                </tr>
+            `;
+        }
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>

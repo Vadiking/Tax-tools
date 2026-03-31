@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart File Diff - Professional Tax Dashboard</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ========================================= */
+        /* 1. UNIVERSAL DASHBOARD TEMPLATE STYLES    */
+        /* ========================================= */
+        :root {
+            --bg-pure: #000000;
+            --card-bg: #111111;
+            --accent-green: #00ff88; 
+            --accent-blue: #00a2ff;  
+            --text-high: #ffffff;
+            --text-low: #888888;
+            --deadline-red: #ff3333;
+            --border-color: #222222;
+
+            /* Diff Tool Specific Variables */
+            --sur: #13162b; --sur2: #1a1e35; --sur3: #21263f;
+            --bd: #2a2f50; --mut: #6b7aad;
+            --acc: #6c8ef5; --acc2: #a78bfa;
+            --add-bg: #0a2018; --add-fg: #3effa2; --add-hl: #1a4733;
+            --del-bg: #28100e; --del-fg: #ff7b7b; --del-hl: #4f1e1e;
+            --chg-bg: #2a1f00; --chg-fg: #fbbf24;
+            --eq-bg: #13162b; --ln-bg: #0d0f1a; --ln-fg: #3d4870;
+            --r: 14px;
+        }
+
+        * { box-sizing: border-box; scroll-behavior: smooth; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+
+        /* Main Content - Expanded to Full Width */
+        .main { padding: 40px; width: 100%; max-width: 1600px; margin: 0 auto; position: relative; min-height: 100vh; }
+
+        header { margin-bottom: 30px; }
+        header h1 { font-size: 1.8rem; margin: 0; color: var(--text-high); display: flex; align-items: center; gap: 15px; }
+        header p { color: var(--text-low); margin-top: 5px; }
+        
+        /* Back Button */
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: var(--accent-blue); text-decoration: none; font-size: 0.9rem; font-weight: 500; margin-bottom: 20px; transition: 0.2s; }
+        .back-btn:hover { color: var(--text-high); transform: translateX(-5px); }
+
+        /* Tool Container Card */
+        .tool-card { background: var(--card-bg); border-radius: 24px; padding: 30px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: var(--card-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--bd); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--mut); }
+
+        /* ========================================= */
+        /* 2. DIFF TOOL SPECIFIC STYLES              */
+        /* ========================================= */
+        .badges { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+        .badge { padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+        .b1 { background: #1a3050; color: #7ac7ff; } .b2 { background: #3a1218; color: #ff9898; }
+        .b3 { background: #0f2b1c; color: #5effa5; } .b4 { background: #1f1a40; color: #c4b5fd; }
+
+        /* UPLOAD */
+        .ugrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .dz { background: var(--sur); border: 2px dashed var(--bd); border-radius: var(--r); padding: 28px 20px; text-align: center; cursor: pointer; position: relative; transition: border-color .2s, background .2s, box-shadow .2s; }
+        .dz:hover, .dz.drag-over { border-color: var(--accent-blue); background: var(--sur2); box-shadow: 0 0 0 4px rgba(0, 162, 255, 0.15); }
+        .dz.loaded { border-style: solid; border-color: rgba(0, 162, 255, 0.4); }
+        .dz input[type=file] { position: absolute; inset: 0; opacity: 0 !important; cursor: pointer; width: 100%; height: 100%; z-index: 10; }
+        .dz-icon { font-size: 36px; margin-bottom: 8px; pointer-events: none; }
+        .dz-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--accent-blue); margin-bottom: 5px; }
+        .dz-label { font-size: 14px; font-weight: 600; margin-bottom: 5px; color: var(--text-high); }
+        .dz-hint { font-size: 11.5px; color: var(--mut); line-height: 1.7; }
+        .dz-fname { font-size: 13px; font-weight: 700; color: var(--text-high); margin-top: 10px; word-break: break-all; display: none; }
+        .dz-fmeta { font-size: 11.5px; color: var(--mut); margin-top: 3px; display: none; }
+        .chk { display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #1a4733; color: var(--add-fg); line-height: 20px; font-size: 12px; margin-right: 5px; }
+
+        /* CONTROLS */
+        .ctrl { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 25px; }
+        .btn { padding: 10px 26px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; transition: all .18s; }
+        .btn-pri { background: var(--accent-green); color: #000; box-shadow: 0 4px 14px rgba(0, 255, 136, 0.2); }
+        .btn-pri:hover:not(:disabled) { background: #00cc6a; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 255, 136, 0.3); }
+        .btn-pri:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
+        .btn-ghost { background: var(--sur2); color: var(--text-high); border: 1px solid var(--bd); }
+        .btn-ghost:hover { background: var(--sur3); }
+        .btn-ghost.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+
+        /* STATS BAR */
+        .sbar { background: var(--sur); border: 1px solid var(--bd); border-radius: var(--r); padding: 12px 18px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin-bottom: 16px; }
+        .stat { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-high); }
+        .sdot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+        .sdot.a { background: var(--add-fg); } .sdot.d { background: var(--del-fg); } .sdot.c { background: var(--chg-fg); } .sdot.e { background: var(--mut); }
+        .stat strong { font-size: 16px; font-weight: 800; }
+        .vtog { margin-left: auto; display: flex; gap: 7px; }
+
+        /* DIFF FRAME */
+        .dframe { border: 1px solid var(--bd); border-radius: var(--r); overflow: hidden; background: var(--sur); }
+
+        /* ===== TEXT DIFF ===== */
+        .dhead { display: grid; grid-template-columns: 1fr 1fr; background: var(--sur2); border-bottom: 1px solid var(--bd); }
+        .dhead.uni { grid-template-columns: 1fr; }
+        .dcol { padding: 10px 15px; font-size: 12px; font-weight: 700; color: var(--mut); display: flex; align-items: center; gap: 7px; overflow: hidden; }
+        .dcol:first-child:not(:only-child) { border-right: 1px solid var(--bd); }
+        .sbs-scroll, .uni-scroll { overflow-x: auto; }
+        .sbs-row { display: grid; grid-template-columns: 1fr 1fr; min-height: 22px; border-bottom: 1px solid #12152a; }
+        .sbs-row:last-child { border-bottom: none; }
+        .sbs-cell { display: flex; align-items: flex-start; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 12px; line-height: 22px; }
+        .sbs-cell:first-child { border-right: 1px solid var(--bd); }
+        .sbs-cell.add { background: var(--add-bg); color: var(--text-high); } .sbs-cell.del { background: var(--del-bg); color: var(--text-high); } .sbs-cell.eq { background: var(--eq-bg); color: var(--text-high); } .sbs-cell.blank { background: #0b0d17; }
+        .ln { color: var(--ln-fg); background: var(--ln-bg); padding: 1px 9px; min-width: 46px; text-align: right; user-select: none; font-size: 11px; flex-shrink: 0; border-right: 1px solid #1a1e35; }
+        .pfx { padding: 1px 5px; width: 20px; text-align: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+        .del .pfx { color: var(--del-fg); } .add .pfx { color: var(--add-fg); } .eq .pfx { color: transparent; }
+        .ltxt { padding: 1px 8px; flex: 1; white-space: pre-wrap; word-break: break-all; }
+        ins.c { background: var(--add-hl); color: var(--add-fg); text-decoration: none; border-radius: 3px; padding: 0 1px; }
+        del.c { background: var(--del-hl); color: var(--del-fg); text-decoration: none; border-radius: 3px; padding: 0 1px; }
+        .uni-row { display: flex; align-items: flex-start; border-bottom: 1px solid #12152a; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 12px; line-height: 22px; color: var(--text-high); }
+        .uni-row:last-child { border-bottom: none; }
+        .uni-row.add { background: var(--add-bg); } .uni-row.del { background: var(--del-bg); } .uni-row.eq { background: var(--eq-bg); }
+        .uln { color: var(--ln-fg); background: var(--ln-bg); padding: 1px 9px; min-width: 46px; text-align: right; user-select: none; font-size: 11px; flex-shrink: 0; border-right: 1px solid #1a1e35; }
+        .upfx { padding: 1px 7px; width: 22px; text-align: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+        .add .upfx { color: var(--add-fg); } .del .upfx { color: var(--del-fg); } .eq .upfx { color: var(--mut); }
+
+        /* ===== PDF DIFF ===== */
+        .pdf-info-bar { background: var(--sur2); border-bottom: 1px solid var(--bd); padding: 10px 16px; display: flex; align-items: center; gap: 16px; font-size: 12.5px; color: var(--mut); }
+        .pdf-colheads { display: grid; grid-template-columns: 1fr 1fr; background: var(--sur3); border-bottom: 1px solid var(--bd); }
+        .pdf-colhead { padding: 9px 15px; font-size: 12px; font-weight: 700; color: var(--mut); display: flex; align-items: center; gap: 7px; }
+        .pdf-colhead:first-child { border-right: 1px solid var(--bd); }
+        .pdf-pages { overflow-x: auto; overflow-y: visible; }
+        .pdf-page-row { display: flex; gap: 0; border-bottom: 1px solid var(--bd); }
+        .pdf-page-row:last-child { border-bottom: none; }
+        .pdf-page-wrap { position: relative; flex-shrink: 0; background: #fff; }
+        .pdf-page-wrap.page-left { border-right: 1px solid var(--bd); }
+        .pdf-page-label { position: absolute; top: 6px; left: 8px; background: rgba(0,0,0,.65); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; z-index: 10; pointer-events: none; }
+        .pdf-empty-page { background: #1a1e35; display: flex; align-items: center; justify-content: center; color: var(--mut); font-size: 13px; border-right: 1px solid var(--bd); }
+        .pdf-legend { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--mut); margin-left: auto; }
+        .pdf-leg-item { display: flex; align-items: center; gap: 6px; }
+        .pdf-leg-dot { width: 12px; height: 12px; border-radius: 2px; }
+        .pdf-leg-dot.del { background: rgba(255,80,80,.55); }
+        .pdf-leg-dot.add { background: rgba(50,220,120,.55); }
+        .pdf-page-num { font-size: 11px; background: var(--sur2); text-align: center; padding: 5px; color: var(--mut); border-top: 1px solid var(--bd); }
+
+        /* ===== EXCEL DIFF ===== */
+        .sheet-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px; background: var(--sur2); border-bottom: 1px solid var(--bd); }
+        .stab { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--bd); background: var(--sur3); color: var(--mut); cursor: pointer; font-size: 12.5px; font-weight: 600; transition: all .15s; }
+        .stab.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+        .stab:hover:not(.active) { background: var(--sur3); color: var(--txt); }
+        .xl-legend { display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: var(--sur2); border-bottom: 1px solid var(--bd); font-size: 12px; flex-wrap: wrap; }
+        .xl-leg { display: flex; align-items: center; gap: 6px; color: var(--text-high); }
+        .xl-swatch { width: 14px; height: 14px; border-radius: 3px; }
+        .xl-scroll { overflow: auto; max-height: 75vh; }
+        .xl-tbl { border-collapse: collapse; font-size: 12.5px; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; white-space: nowrap; }
+        .xl-tbl th, .xl-tbl td { border: 1px solid var(--bd); padding: 4px 10px; min-width: 80px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+        .xl-tbl thead th { background: var(--sur3); color: var(--mut); font-weight: 700; position: sticky; top: 0; z-index: 2; text-align: center; }
+        .xl-tbl thead th.corner { position: sticky; left: 0; z-index: 3; }
+        .xl-tbl td.rn { background: var(--ln-bg); color: var(--ln-fg); font-size: 11px; text-align: right; position: sticky; left: 0; z-index: 1; font-weight: 700; }
+        .xl-tbl td.eq { background: #13162b; color: var(--text-high); }
+        .xl-tbl td.add { background: #0a2a18; color: var(--add-fg); }
+        .xl-tbl td.del { background: #2a1210; color: var(--del-fg); text-decoration: line-through; opacity: .8; }
+        .xl-tbl td.chg { background: #2a1f00; color: var(--text-high); padding: 2px 6px; }
+        .cell-old { color: var(--del-fg); font-size: 11px; text-decoration: line-through; margin-bottom: 2px; }
+        .cell-new { color: var(--add-fg); font-size: 11px; font-weight: 700; }
+        .xl-sheet-stats { display: flex; gap: 14px; padding: 8px 16px; background: var(--sur2); border-bottom: 1px solid var(--bd); font-size: 12px; }
+        .ss-a { color: var(--add-fg); } .ss-d { color: var(--del-fg); } .ss-c { color: var(--chg-fg); }
+        .sheet-view { display: none; } .sheet-view.active { display: block; }
+
+        /* EMPTY / IDENTICAL */
+        .empty-st { text-align: center; padding: 64px 20px; color: var(--mut); }
+        .empty-st .icon { font-size: 52px; margin-bottom: 14px; }
+        .empty-st p { font-size: 15px; }
+        .identical { text-align: center; padding: 50px 24px; color: var(--add-fg); font-weight: 700; }
+        .identical .icon { font-size: 50px; margin-bottom: 12px; }
+        .identical p { font-size: 17px; }
+        .identical small { color: var(--mut); font-size: 13px; font-weight: 400; display: block; margin-top: 6px; }
+
+        /* LOADING */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+        .overlay.show { display: flex; }
+        .spin-wrap { text-align: center; color: var(--text-high); font-size: 14px; }
+        .ring { width: 52px; height: 52px; margin: 0 auto 14px; border: 4px solid var(--bd); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin .75s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* TYPE INDICATOR */
+        .type-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .tp-pdf { background: #3a1218; color: #ff9898; }
+        .tp-xlsx { background: #0f2b1c; color: #5effa5; }
+        .tp-txt { background: #1f1a40; color: #c4b5fd; }
+        .tp-tds { background: #1a3050; color: #7ac7ff; }
+
+        @media(max-width:720px) {
+            .ugrid { grid-template-columns: 1fr; }
+            .dhead { grid-template-columns: 1fr; }
+            .sbs-row { grid-template-columns: 1fr; }
+            .sbs-cell:first-child { border-right: none; border-bottom: 1px solid var(--bd); }
+            .pdf-page-row { flex-direction: column; }
+            .badges { display: none; }
+            .vtog { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main">
+    <a href="index.html" class="back-btn">← Back to Dashboard</a>
+    
+    <header>
+        <h1><div style="font-size: 1.5rem; padding: 8px 12px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color);">🔀</div> Smart File Diff Comparator</h1>
+        <p>Compare PDF, Excel, TDS, FVU, and Text files instantly to highlight insertions, deletions, and changes.</p>
+        <div class="badges">
+            <span class="badge b1">.FVU</span>
+            <span class="badge b1">.TDS</span>
+            <span class="badge b2">.PDF</span>
+            <span class="badge b3">.XLSX</span>
+            <span class="badge b4">.TXT</span>
+            <span class="badge b4">.CSV</span>
+        </div>
+    </header>
+
+    <div class="tool-card">
+        
+        <div class="ugrid">
+            <div class="dz" id="z1" ondragover="onOv(event,1)" ondragleave="onLv(1)" ondrop="onDp(event,1)">
+                <input type="file" id="fi1" onchange="onCh(1)" accept=".fvu,.tds,.txt,.csv,.pdf,.xlsx,.xls,.json,.xml,.log,.dat">
+                <div class="dz-icon">📂</div>
+                <div class="dz-tag">File 1 · Original</div>
+                <div class="dz-label">Click or drag file here</div>
+                <div class="dz-hint">.pdf · .xlsx · .fvu · .tds · .csv · .txt</div>
+                <div id="n1" class="dz-fname"></div>
+                <div id="m1" class="dz-fmeta"></div>
+            </div>
+            <div class="dz" id="z2" ondragover="onOv(event,2)" ondragleave="onLv(2)" ondrop="onDp(event,2)">
+                <input type="file" id="fi2" onchange="onCh(2)" accept=".fvu,.tds,.txt,.csv,.pdf,.xlsx,.xls,.json,.xml,.log,.dat">
+                <div class="dz-icon">📂</div>
+                <div class="dz-tag">File 2 · Modified</div>
+                <div class="dz-label">Click or drag file here</div>
+                <div class="dz-hint">.pdf · .xlsx · .fvu · .tds · .csv · .txt</div>
+                <div id="n2" class="dz-fname"></div>
+                <div id="m2" class="dz-fmeta"></div>
+            </div>
+        </div>
+
+        <div class="ctrl">
+            <button class="btn btn-pri" id="cmpBtn" onclick="doCompare()" disabled>⚡ Compare Files</button>
+            <button class="btn btn-ghost" onclick="doReset()">↺ &nbsp;Reset</button>
+        </div>
+
+        <div id="results" style="display:none">
+            <div class="sbar" id="sbar">
+                <div class="stat"><div class="sdot a"></div>Added: <strong id="sa">0</strong></div>
+                <div class="stat"><div class="sdot d"></div>Removed: <strong id="sd">0</strong></div>
+                <div class="stat"><div class="sdot c"></div>Changed: <strong id="sc">0</strong></div>
+                <div class="stat"><div class="sdot e"></div>Unchanged: <strong id="se">0</strong></div>
+                <div class="vtog" id="vtog">
+                    <button class="btn btn-ghost active" id="vbsbs" onclick="setView('sbs')">⇄ Side by Side</button>
+                    <button class="btn btn-ghost" id="vbuni" onclick="setView('uni')">≡ Unified</button>
+                </div>
+            </div>
+            <div class="dframe" id="dframe"></div>
+        </div>
+
+        <div class="empty-st" id="est">
+            <div class="icon">🔍</div>
+            <p style="color: var(--text-high);">Upload two files then click <strong style="color: var(--accent-green);">Compare Files</strong></p>
+        </div>
+
+    </div>
+</div>
+
+<div class="overlay" id="ov">
+    <div class="spin-wrap">
+        <div class="ring"></div>
+        <p id="ov-msg">Comparing files…</p>
+    </div>
+</div>
+
+<script>
+// ── PDF.js worker ──────────────────────────────────────────────────
+if (typeof pdfjsLib !== 'undefined')
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── Constants ──────────────────────────────────────────────────────
+const PDF_SCALE = 0.9; 
+
+// ── State ──────────────────────────────────────────────────────────
+const FL = [null, null];
+let curView = 'sbs';
+let lastDiffs = null;
+let fileMode = 'text'; 
+
+// ── Drag-drop ──────────────────────────────────────────────────────
+function onOv(e,n){e.preventDefault();document.getElementById('z'+n).classList.add('drag-over')}
+function onLv(n){document.getElementById('z'+n).classList.remove('drag-over')}
+function onDp(e,n){e.preventDefault();onLv(n);const f=e.dataTransfer.files[0];if(f)reg(n,f)}
+function onCh(n){const f=document.getElementById('fi'+n).files[0];if(f)reg(n,f)}
+
+function reg(n, file) {
+  FL[n-1] = file;
+  document.getElementById('z'+n).classList.add('loaded');
+  const nm=document.getElementById('n'+n), mt=document.getElementById('m'+n);
+  nm.style.display=mt.style.display='block';
+  nm.innerHTML='<span class="chk">✓</span>'+esc(file.name)+' <span class="type-pill '+typePill(file.name)+'">'+fmtType(file.name)+'</span>';
+  mt.textContent=fmtSz(file.size);
+  document.getElementById('cmpBtn').disabled=!(FL[0]&&FL[1]);
+}
+
+function cat(name){const e=name.split('.').pop().toLowerCase();return e==='pdf'?'pdf':['xlsx','xls'].includes(e)?'excel':'text'}
+function typePill(name){const e=name.split('.').pop().toLowerCase();return e==='pdf'?'tp-pdf':['xlsx','xls'].includes(e)?'tp-xlsx':['fvu','tds'].includes(e)?'tp-tds':'tp-txt'}
+function fmtType(name){const e=name.split('.').pop().toLowerCase();return({fvu:'FVU',tds:'TDS',pdf:'PDF',xlsx:'XLSX',xls:'XLS',csv:'CSV',txt:'TXT',json:'JSON',xml:'XML',log:'LOG',dat:'DAT'}[e]||e.toUpperCase())}
+function fmtSz(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB'}
+
+// ── Main compare ───────────────────────────────────────────────────
+async function doCompare() {
+  if (!FL[0]||!FL[1]) return;
+  loading(true,'Comparing files…');
+
+  const c1=cat(FL[0].name), c2=cat(FL[1].name);
+  fileMode = (c1==='pdf'&&c2==='pdf') ? 'pdf' : (c1==='excel'&&c2==='excel') ? 'excel' : 'text';
+
+  document.getElementById('vtog').style.display = fileMode==='text' ? 'flex' : 'none';
+
+  try {
+    if (fileMode==='pdf')   await doPDFCompare();
+    else if (fileMode==='excel') await doExcelCompare();
+    else                    await doTextCompare();
+
+    document.getElementById('est').style.display='none';
+    document.getElementById('results').style.display='block';
+  } catch(err) {
+    alert('Error: '+err.message);
+    console.error(err);
+  } finally {
+    loading(false);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PDF MODE
+// ══════════════════════════════════════════════════════════════
+async function doPDFCompare() {
+  loading(true,'Rendering PDF pages…');
+  const [buf1, buf2] = await Promise.all([FL[0].arrayBuffer(), FL[1].arrayBuffer()]);
+  const [pdf1, pdf2] = await Promise.all([
+    pdfjsLib.getDocument({data: buf1}).promise,
+    pdfjsLib.getDocument({data: buf2}).promise
+  ]);
+
+  const frame = document.getElementById('dframe');
+  frame.innerHTML='';
+
+  let totalAdd=0, totalDel=0, totalChg=0, totalEq=0;
+
+  frame.innerHTML = `
+    <div class="pdf-info-bar">
+      <span>📄 <strong>${esc(FL[0].name)}</strong>: ${pdf1.numPages} page${pdf1.numPages!==1?'s':''}</span>
+      <span style="color:var(--bd)">vs</span>
+      <span>📄 <strong>${esc(FL[1].name)}</strong>: ${pdf2.numPages} page${pdf2.numPages!==1?'s':''}</span>
+      <div class="pdf-legend">
+        <div class="pdf-leg-item"><div class="pdf-leg-dot del"></div>Removed text</div>
+        <div class="pdf-leg-item"><div class="pdf-leg-dot add"></div>Added text</div>
+      </div>
+    </div>
+    <div class="pdf-colheads">
+      <div class="pdf-colhead"><span style="color:var(--del-fg)">●</span> <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px">${esc(FL[0].name)}</span> <span style="margin-left:auto;font-size:11px;background:#3a1218;color:var(--del-fg);padding:2px 8px;border-radius:20px">Original</span></div>
+      <div class="pdf-colhead"><span style="color:var(--add-fg)">●</span> <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px">${esc(FL[1].name)}</span> <span style="margin-left:auto;font-size:11px;background:#0b2318;color:var(--add-fg);padding:2px 8px;border-radius:20px">Modified</span></div>
+    </div>
+    <div class="pdf-pages" id="pdf-pages"></div>`;
+
+  const pagesDiv = document.getElementById('pdf-pages');
+  const numPages = Math.max(pdf1.numPages, pdf2.numPages);
+
+  for (let p=1; p<=numPages; p++) {
+    loading(true, `Rendering page ${p} of ${numPages}…`);
+    const row = document.createElement('div');
+    row.className='pdf-page-row';
+
+    let items1=[], vp1=null, oc1=null;
+    let items2=[], vp2=null, oc2=null;
+
+    if (p <= pdf1.numPages) {
+      const res = await renderPDFPage(pdf1, p, 'page-left');
+      row.appendChild(res.wrapper);
+      items1=res.items; vp1=res.viewport; oc1=res.overlay;
+    } else {
+      const emp = document.createElement('div');
+      emp.className='pdf-empty-page page-left';
+      emp.style.cssText='width:400px;height:500px;border-right:1px solid var(--bd)';
+      emp.textContent='(No page '+p+')';
+      row.appendChild(emp);
+    }
+
+    if (p <= pdf2.numPages) {
+      const res = await renderPDFPage(pdf2, p, 'page-right');
+      row.appendChild(res.wrapper);
+      items2=res.items; vp2=res.viewport; oc2=res.overlay;
+    } else {
+      const emp = document.createElement('div');
+      emp.className='pdf-empty-page';
+      emp.style.cssText='width:400px;height:500px';
+      emp.textContent='(No page '+p+')';
+      row.appendChild(emp);
+    }
+
+    if (items1.length || items2.length) {
+      const {delSet, insSet, eq} = computeItemDiff(items1, items2);
+      totalDel += delSet.size;
+      totalAdd += insSet.size;
+      totalEq  += eq;
+      if (oc1 && vp1) drawHighlights(oc1, items1, delSet, 'rgba(255,70,70,0.42)', 'rgba(200,30,30,0.75)', vp1);
+      if (oc2 && vp2) drawHighlights(oc2, items2, insSet, 'rgba(40,210,110,0.42)', 'rgba(20,160,80,0.75)', vp2);
+    }
+
+    const pnDiv = document.createElement('div');
+    pnDiv.className='pdf-page-num';
+    pnDiv.style.cssText='grid-column:1/-1;';
+    pnDiv.textContent='Page '+p;
+    pagesDiv.appendChild(row);
+  }
+
+  document.getElementById('sa').textContent=totalAdd;
+  document.getElementById('sd').textContent=totalDel;
+  document.getElementById('sc').textContent=0;
+  document.getElementById('se').textContent=totalEq;
+}
+
+async function renderPDFPage(pdf, pageNum, sideClass) {
+  const page    = await pdf.getPage(pageNum);
+  const viewport = page.getViewport({scale: PDF_SCALE});
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'pdf-page-wrap '+sideClass;
+  wrapper.style.cssText = `width:${viewport.width}px;height:${viewport.height}px;flex-shrink:0`;
+
+  const label = document.createElement('div');
+  label.className = 'pdf-page-label';
+  label.textContent = 'P'+pageNum;
+  wrapper.appendChild(label);
+
+  const canvas = document.createElement('canvas');
+  canvas.width  = Math.round(viewport.width);
+  canvas.height = Math.round(viewport.height);
+  canvas.style.cssText='display:block;position:absolute;top:0;left:0';
+  await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
+  wrapper.appendChild(canvas);
+
+  const overlay = document.createElement('canvas');
+  overlay.width  = Math.round(viewport.width);
+  overlay.height = Math.round(viewport.height);
+  overlay.style.cssText='position:absolute;top:0;left:0;pointer-events:none';
+  wrapper.appendChild(overlay);
+
+  const tc = await page.getTextContent();
+  const items = tc.items.filter(i=>i.str && i.str.trim()!=='');
+
+  return {wrapper, overlay, viewport, items};
+}
+
+function computeItemDiff(items1, items2) {
+  const s1 = items1.map(i=>i.str);
+  const s2 = items2.map(i=>i.str);
+  const t1 = s1.map(s=>s+'\n').join('');
+  const t2 = s2.map(s=>s+'\n').join('');
+
+  const dmp = new diff_match_patch();
+  const a   = dmp.diff_linesToChars_(t1, t2);
+  const dfs = dmp.diff_main(a.chars1, a.chars2, false);
+  dmp.diff_charsToLines_(dfs, a.lineArray);
+
+  const delSet=new Set(), insSet=new Set();
+  let i1=0, i2=0, eq=0;
+
+  dfs.forEach(([op, txt]) => {
+    const cnt = txt.split('\n').filter(l=>l!=='').length;
+    for (let k=0; k<cnt; k++) {
+      if      (op===-1) delSet.add(i1++);
+      else if (op===1)  insSet.add(i2++);
+      else              { i1++; i2++; eq++; }
+    }
+  });
+  return {delSet, insSet, eq};
+}
+
+function drawHighlights(overlayCanvas, items, highlightSet, fillColor, strokeColor, viewport) {
+  const ctx = overlayCanvas.getContext('2d');
+  ctx.save();
+
+  items.forEach((item, idx) => {
+    if (!highlightSet.has(idx)) return;
+    const tx = item.transform;
+    const pdfX = tx[4];
+    const pdfY = tx[5];
+    const fw   = item.width  || 0;
+    const fh   = Math.abs(tx[0]) || item.height || 10;
+    const [cx1, cy1] = viewport.convertToViewportPoint(pdfX,      pdfY + fh * 0.2);
+    const [cx2, cy2] = viewport.convertToViewportPoint(pdfX + fw, pdfY - fh * 0.15);
+    const rx = Math.min(cx1,cx2);
+    const ry = Math.min(cy1,cy2);
+    const rw = Math.max(Math.abs(cx2-cx1), 4);
+    const rh = Math.max(Math.abs(cy2-cy1), 6);
+
+    ctx.fillStyle   = fillColor;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth   = 1;
+    ctx.fillRect  (rx, ry, rw, rh);
+    ctx.strokeRect(rx, ry, rw, rh);
+  });
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  EXCEL MODE
+// ══════════════════════════════════════════════════════════════
+async function doExcelCompare() {
+  loading(true,'Parsing Excel files…');
+  const [d1, d2] = await Promise.all([parseExcel(FL[0]), parseExcel(FL[1])]);
+
+  const allSheets = [...new Set([...d1.names, ...d2.names])];
+  const frame     = document.getElementById('dframe');
+  frame.innerHTML = '';
+
+  const tabsDiv = document.createElement('div');
+  tabsDiv.className = 'sheet-tabs';
+  allSheets.forEach((name,i) => {
+    const b = document.createElement('button');
+    b.className='stab'+(i===0?' active':'');
+    b.textContent=name;
+    b.onclick=()=>{
+      document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+      b.classList.add('active');
+      document.querySelectorAll('.sheet-view').forEach(v=>v.classList.remove('active'));
+      document.getElementById('sv'+i).classList.add('active');
+    };
+    tabsDiv.appendChild(b);
+  });
+  frame.appendChild(tabsDiv);
+
+  const leg = document.createElement('div');
+  leg.className='xl-legend';
+  leg.innerHTML=`
+    <div class="xl-leg"><div class="xl-swatch" style="background:#0a2a18;border:1px solid var(--add-fg)"></div>Added (new value)</div>
+    <div class="xl-leg"><div class="xl-swatch" style="background:#2a1210;border:1px solid var(--del-fg)"></div>Removed (old value)</div>
+    <div class="xl-leg"><div class="xl-swatch" style="background:#2a1f00;border:1px solid var(--chg-fg)"></div>Changed (old → new)</div>
+    <div class="xl-leg"><div class="xl-swatch" style="background:#13162b;border:1px solid var(--bd)"></div>Unchanged</div>`;
+  frame.appendChild(leg);
+
+  let totalAdd=0, totalDel=0, totalChg=0, totalEq=0;
+
+  allSheets.forEach((name,i) => {
+    const sv = document.createElement('div');
+    sv.className='sheet-view'+(i===0?' active':'');
+    sv.id='sv'+i;
+
+    const c1 = d1.sheets[name] || {};
+    const c2 = d2.sheets[name] || {};
+    const {html, add, del, chg, eq} = buildExcelTable(c1, c2, name);
+    totalAdd+=add; totalDel+=del; totalChg+=chg; totalEq+=eq;
+
+    sv.innerHTML=`<div class="xl-sheet-stats">
+      <span class="ss-a">+${add} added cells</span>
+      <span class="ss-d">−${del} removed cells</span>
+      <span class="ss-c">≈${chg} changed cells</span>
+      <span style="color:var(--mut)">${eq} unchanged</span>
+    </div>`+html;
+    frame.appendChild(sv);
+  });
+
+  document.getElementById('sa').textContent=totalAdd;
+  document.getElementById('sd').textContent=totalDel;
+  document.getElementById('sc').textContent=totalChg;
+  document.getElementById('se').textContent=totalEq;
+}
+
+async function parseExcel(file) {
+  const buf = await file.arrayBuffer();
+  const wb  = XLSX.read(buf, {type:'array', cellDates:true});
+  const res = {names: wb.SheetNames, sheets: {}};
+  wb.SheetNames.forEach(name => {
+    const ws   = wb.Sheets[name];
+    const ref  = ws['!ref'];
+    const cells = {};
+    if (ref) {
+      const rng = XLSX.utils.decode_range(ref);
+      for (let r=rng.s.r; r<=rng.e.r; r++) {
+        for (let c=rng.s.c; c<=rng.e.c; c++) {
+          const addr = XLSX.utils.encode_cell({r,c});
+          const cell = ws[addr];
+          if (cell && cell.v!==undefined) cells[addr] = XLSX.utils.format_cell(cell);
+        }
+      }
+    }
+    res.sheets[name] = cells;
+  });
+  return res;
+}
+
+function buildExcelTable(cells1, cells2, sheetName) {
+  const all = new Set([...Object.keys(cells1), ...Object.keys(cells2)]);
+  if (!all.size) return {html:'<div style="padding:24px;color:var(--mut);text-align:center">Sheet is empty in both files.</div>',add:0,del:0,chg:0,eq:0};
+
+  const decoded = [...all].map(a=>XLSX.utils.decode_cell(a));
+  const maxR = Math.max(...decoded.map(d=>d.r));
+  const maxC = Math.max(...decoded.map(d=>d.c));
+
+  let add=0, del=0, chg=0, eq=0;
+
+  let h='<div class="xl-scroll"><table class="xl-tbl"><thead><tr><th class="corner">#</th>';
+  for (let c=0;c<=maxC;c++) h+=`<th>${XLSX.utils.encode_col(c)}</th>`;
+  h+='</tr></thead><tbody>';
+
+  for (let r=0;r<=maxR;r++) {
+    h+=`<tr><td class="rn">${r+1}</td>`;
+    for (let c=0;c<=maxC;c++) {
+      const addr=XLSX.utils.encode_cell({r,c});
+      const v1=cells1[addr]??null;
+      const v2=cells2[addr]??null;
+      if (v1===v2) {
+        eq++;
+        h+=`<td class="eq">${v1!==null?esc(String(v1)):''}</td>`;
+      } else if (v1===null) {
+        add++;
+        h+=`<td class="add" title="Added in File 2">+&nbsp;${esc(String(v2))}</td>`;
+      } else if (v2===null) {
+        del++;
+        h+=`<td class="del" title="Only in File 1 (removed)">−&nbsp;${esc(String(v1))}</td>`;
+      } else {
+        chg++;
+        h+=`<td class="chg" title="${esc(String(v1))} → ${esc(String(v2))}"><div class="cell-old">− ${esc(String(v1))}</div><div class="cell-new">+ ${esc(String(v2))}</div></td>`;
+      }
+    }
+    h+='</tr>';
+  }
+  h+='</tbody></table></div>';
+  return {html:h, add, del, chg, eq};
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TEXT MODE
+// ══════════════════════════════════════════════════════════════
+async function doTextCompare() {
+  loading(true,'Comparing text…');
+  const [t1, t2] = await Promise.all([readTxt(FL[0]), readTxt(FL[1])]);
+  const diffs = lineDiff(t1, t2);
+  lastDiffs   = diffs;
+
+  let add=0, del=0, eq=0;
+  diffs.forEach(([op,txt]) => {
+    const n=countLn(txt);
+    if (op===1) add+=n; else if (op===-1) del+=n; else eq+=n;
+  });
+  document.getElementById('sa').textContent=add;
+  document.getElementById('sd').textContent=del;
+  document.getElementById('sc').textContent=0;
+  document.getElementById('se').textContent=eq;
+  renderTextDiff(diffs);
+}
+
+function readTxt(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result);
+    r.onerror=rej;
+    r.readAsText(file,'UTF-8');
+  });
+}
+
+function lineDiff(t1,t2){
+  const dmp=new diff_match_patch();
+  const a=dmp.diff_linesToChars_(t1,t2);
+  const d=dmp.diff_main(a.chars1,a.chars2,false);
+  dmp.diff_charsToLines_(d,a.lineArray);
+  return d;
+}
+function charDiff(s1,s2){
+  const dmp=new diff_match_patch();
+  const d=dmp.diff_main(s1,s2);
+  dmp.diff_cleanupSemantic(d);
+  return d;
+}
+function countLn(txt){if(!txt)return 0;const l=txt.split('\n');return(l[l.length-1]==='')?l.length-1:l.length}
+
+function setView(v){
+  curView=v;
+  document.getElementById('vbsbs').classList.toggle('active',v==='sbs');
+  document.getElementById('vbuni').classList.toggle('active',v==='uni');
+  if(lastDiffs) renderTextDiff(lastDiffs);
+}
+
+function renderTextDiff(diffs){
+  const frame=document.getElementById('dframe');
+  const hasChg=diffs.some(([op])=>op!==0);
+  if(!hasChg){
+    frame.innerHTML=`<div class="identical"><div class="icon">✅</div><p>Files are identical — no differences found!</p><small>Both files have exactly the same content.</small></div>`;
+    return;
+  }
+  curView==='sbs'?renderSBS(diffs,frame):renderUni(diffs,frame);
+}
+
+function grpBlocks(diffs){
+  const out=[];let i=0;
+  while(i<diffs.length){
+    const[op,txt]=diffs[i];
+    if(op===0){out.push({k:'eq',lines:spL(txt)});i++;}
+    else if(op===-1){
+      if(i+1<diffs.length&&diffs[i+1][0]===1){out.push({k:'chg',dels:spL(txt),ins:spL(diffs[i+1][1])});i+=2;}
+      else{out.push({k:'del',lines:spL(txt)});i++;}
+    } else{out.push({k:'ins',lines:spL(txt)});i++;}
+  }
+  return out;
+}
+function spL(txt){if(!txt)return[];const a=txt.split('\n');if(a[a.length-1]==='')a.pop();return a;}
+
+function rChars(cd,side){
+  let h='';
+  cd.forEach(([op,txt])=>{
+    const e=esc(txt);
+    if(op===0)h+=e;
+    else if(op===-1&&side==='del')h+=`<del class="c">${e}</del>`;
+    else if(op===1&&side==='add')h+=`<ins class="c">${e}</ins>`;
+  });
+  return h;
+}
+
+function renderSBS(diffs,frame){
+  const n1=FL[0]?.name||'File 1', n2=FL[1]?.name||'File 2';
+  let h=`<div class="dhead">
+    <div class="dcol"><span style="color:var(--del-fg)">●</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n1)}</span><span style="margin-left:auto;font-size:11px;background:#3a1218;color:var(--del-fg);padding:2px 8px;border-radius:20px">Original</span></div>
+    <div class="dcol"><span style="color:var(--add-fg)">●</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n2)}</span><span style="margin-left:auto;font-size:11px;background:#0b2318;color:var(--add-fg);padding:2px 8px;border-radius:20px">Modified</span></div>
+  </div><div class="sbs-scroll">`;
+
+  const blks=grpBlocks(diffs);
+  let l1=1,l2=1;
+
+  blks.forEach(b=>{
+    if(b.k==='eq'){
+      b.lines.forEach(ln=>{h+=`<div class="sbs-row"><div class="sbs-cell eq"><span class="ln">${l1++}</span><span class="pfx"> </span><span class="ltxt">${esc(ln)}</span></div><div class="sbs-cell eq"><span class="ln">${l2++}</span><span class="pfx"> </span><span class="ltxt">${esc(ln)}</span></div></div>`;});
+    }else if(b.k==='del'){
+      b.lines.forEach(ln=>{h+=`<div class="sbs-row"><div class="sbs-cell del"><span class="ln">${l1++}</span><span class="pfx">−</span><span class="ltxt">${esc(ln)}</span></div><div class="sbs-cell blank"><span class="ln"> </span><span class="pfx"> </span><span class="ltxt"></span></div></div>`;});
+    }else if(b.k==='ins'){
+      b.lines.forEach(ln=>{h+=`<div class="sbs-row"><div class="sbs-cell blank"><span class="ln"> </span><span class="pfx"> </span><span class="ltxt"></span></div><div class="sbs-cell add"><span class="ln">${l2++}</span><span class="pfx">+</span><span class="ltxt">${esc(ln)}</span></div></div>`;});
+    }else{
+      const mx=Math.max(b.dels.length,b.ins.length);
+      for(let i=0;i<mx;i++){
+        const dl=i<b.dels.length?b.dels[i]:null;
+        const il=i<b.ins.length?b.ins[i]:null;
+        let lc,rc;
+        if(dl!==null&&il!==null){const cd=charDiff(dl,il);lc=`<div class="sbs-cell del"><span class="ln">${l1++}</span><span class="pfx">−</span><span class="ltxt">${rChars(cd,'del')}</span></div>`;rc=`<div class="sbs-cell add"><span class="ln">${l2++}</span><span class="pfx">+</span><span class="ltxt">${rChars(cd,'add')}</span></div>`;}
+        else if(dl!==null){lc=`<div class="sbs-cell del"><span class="ln">${l1++}</span><span class="pfx">−</span><span class="ltxt">${esc(dl)}</span></div>`;rc=`<div class="sbs-cell blank"><span class="ln"> </span><span class="pfx"> </span><span class="ltxt"></span></div>`;}
+        else{lc=`<div class="sbs-cell blank"><span class="ln"> </span><span class="pfx"> </span><span class="ltxt"></span></div>`;rc=`<div class="sbs-cell add"><span class="ln">${l2++}</span><span class="pfx">+</span><span class="ltxt">${esc(il)}</span></div>`;}
+        h+=`<div class="sbs-row">${lc}${rc}</div>`;
+      }
+    }
+  });
+  h+='</div>';
+  frame.innerHTML=h;
+}
+
+function renderUni(diffs,frame){
+  const n1=FL[0]?.name||'File 1', n2=FL[1]?.name||'File 2';
+  let h=`<div class="dhead uni"><div class="dcol" style="border-right:none">≡ Unified &nbsp;<span style="color:var(--del-fg)">− ${esc(n1)}</span>&nbsp;&nbsp;<span style="color:var(--add-fg)">+ ${esc(n2)}</span></div></div><div class="uni-scroll">`;
+  const blks=grpBlocks(diffs);let l1=1,l2=1;
+  blks.forEach(b=>{
+    if(b.k==='eq'){b.lines.forEach(ln=>{h+=`<div class="uni-row eq"><span class="uln">${l1++}</span><span class="uln">${l2++}</span><span class="upfx"> </span><span class="ltxt">${esc(ln)}</span></div>`;});}
+    else if(b.k==='del'){b.lines.forEach(ln=>{h+=`<div class="uni-row del"><span class="uln">${l1++}</span><span class="uln"> </span><span class="upfx">−</span><span class="ltxt">${esc(ln)}</span></div>`;});}
+    else if(b.k==='ins'){b.lines.forEach(ln=>{h+=`<div class="uni-row add"><span class="uln"> </span><span class="uln">${l2++}</span><span class="upfx">+</span><span class="ltxt">${esc(ln)}</span></div>`;});}
+    else{
+      b.dels.forEach(ln=>{h+=`<div class="uni-row del"><span class="uln">${l1++}</span><span class="uln"> </span><span class="upfx">−</span><span class="ltxt">${esc(ln)}</span></div>`;});
+      b.ins.forEach(ln=>{h+=`<div class="uni-row add"><span class="uln"> </span><span class="uln">${l2++}</span><span class="upfx">+</span><span class="ltxt">${esc(ln)}</span></div>`;});
+    }
+  });
+  h+='</div>';
+  frame.innerHTML=h;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function loading(on,msg){document.getElementById('ov').classList.toggle('show',on);if(msg)document.getElementById('ov-msg').textContent=msg}
+function doReset(){
+  FL[0]=FL[1]=null;lastDiffs=null;
+  for(let n=1;n<=2;n++){document.getElementById('fi'+n).value='';document.getElementById('n'+n).style.display=document.getElementById('m'+n).style.display='none';document.getElementById('z'+n).classList.remove('loaded','drag-over');}
+  document.getElementById('cmpBtn').disabled=true;
+  document.getElementById('results').style.display='none';
+  document.getElementById('est').style.display='block';
+}
+</script>
+</body>
+</html>
