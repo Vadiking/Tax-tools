@@ -54,9 +54,7 @@
         .connection-line { fill: none; stroke: var(--deadline-red); stroke-width: 2; stroke-dasharray: 6; animation: dash 1s linear infinite; }
         @keyframes dash { from { stroke-dashoffset: 12; } to { stroke-dashoffset: 0; } }
 
-        #tools { margin-top: 80px; }
         .bucket-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; perspective: 1000px; }
-        
         .bucket-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; color: var(--text-high); font-size: 1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 500; transform-style: preserve-3d; }
         .bucket-btn.active { border-color: var(--accent-blue); background: #000a15; }
         
@@ -74,7 +72,7 @@
         
         .tool-flip-front h4 { margin: 0; color: var(--text-high); font-size: 0.95rem; }
         .tool-flip-front span { display: block; font-size: 0.75rem; color: var(--text-low); margin-top: 8px; }
-        .tool-flip-back p { margin: 0; font-size: 0.8rem; line-height: 1.5; padding-bottom: 12px; }
+        .tool-flip-back p { margin: 0; font-size: 0.8rem; color: var(--text-high); line-height: 1.5; padding-bottom: 12px; }
         .tool-launch-btn { background: var(--accent-green); color: #000; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: 700; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(5px); justify-content: center; align-items: center; }
@@ -126,7 +124,6 @@
 
     <section id="tools">
         <h3 style="color: var(--text-low); margin-bottom: 25px; font-size: 0.9rem;">WORKFLOW UTILITIES</h3>
-        
         <div class="bucket-grid">
             <button class="bucket-btn active" onclick="switchTab('direct-tax', this)">Direct Tax</button>
             <button class="bucket-btn" onclick="comingSoon(this, 'Indirect Tax')">Indirect Tax</button>
@@ -182,7 +179,7 @@
                         <div class="tool-flip-front"><h4>PDF Renamer</h4><span>Batch Organization</span></div>
                         <div class="tool-flip-back">
                             <p>Batch rename TDS certificates</p>
-                            <a href="PDF_Renamer_AY_FY New one.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
+                            <a href="PDF Renamer AY FY New one.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
                         </div>
                     </div>
                 </div>
@@ -222,27 +219,39 @@
 
     const taxRegistry = {
         0: [ { d: 7, l: "TDS & TCS Payment", t: "December Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "TDS Filing", t: "Q3 Form 24Q/26Q" } ],
-        1: [ { d: 7, l: "TDS & TCS Payment", t: "January Month" }, { d: 20, l: "GSTR-3B", t: "Monthly" } ],
-        2: [ { d: 7, l: "TDS & TCS Payment", t: "February Month" }, { d: 15, l: "Advance Tax", t: "Q4 Final Installment" }, { d: 31, l: "Revised ITR", t: "Budget 2026" } ],
-        3: [ { d: 7, l: "TCS Payment", t: "March Month" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 30, l: "TDS Payment", t: "March Deductions" } ],
-        4: [ { d: 7, l: "TDS Payment", t: "April Month" }, { d: 31, l: "TDS Filing", t: "Q4 Form 24Q/26Q" } ]
+        1: [ { d: 7, l: "TDS & TCS Payment", t: "January Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" } ],
+        2: [ { d: 7, l: "TDS & TCS Payment", t: "February Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "Advance Tax", t: "Q4 Final Installment" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "Revised ITR", t: "Budget 2026" } ],
+        3: [ { d: 7, l: "TCS Payment", t: "March Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 30, l: "TDS Payment", t: "March Deductions" } ],
+        4: [ { d: 7, l: "TDS & TCS Payment", t: "April Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "TCS Filing", t: "Q4 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "TDS Filing", t: "Q4 Form 24Q/26Q" } ],
+        5: [ { d: 7, l: "TDS & TCS Payment", t: "May Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "Advance Tax", t: "Q1 1st Installment" }, { d: 20, l: "GSTR-3B", t: "Monthly" } ],
+        6: [ { d: 7, l: "TDS & TCS Payment", t: "June Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "TCS Filing", t: "Q1 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "TDS Filing", t: "Q1 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Non-Audit" } ],
+        7: [ { d: 7, l: "TDS & TCS Payment", t: "July Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "ITR Filing", t: "Audit Threshold Cases" } ],
+        8: [ { d: 7, l: "TDS & TCS Payment", t: "August Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "Advance Tax", t: "Q2 2nd Installment" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 30, l: "Tax Audit Report", t: "Statutory Due" } ],
+        9: [ { d: 7, l: "TDS & TCS Payment", t: "September Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "TCS Filing", t: "Q2 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "TDS Filing", t: "Q2 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Audit/Corporate Cases" } ],
+        10: [ { d: 7, l: "TDS & TCS Payment", t: "October Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 30, l: "TP Report", t: "Form 3CEB" } ],
+        11: [ { d: 7, l: "TDS & TCS Payment", t: "November Month" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "Advance Tax", t: "Q3 3rd Installment" }, { d: 20, l: "GSTR-3B", t: "Monthly" } ]
     };
 
     function build() {
         if (currentMonth > 11) { currentMonth = 0; currentYear++; } 
         else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+
         const grid = document.getElementById('calendarGrid');
         const list = document.getElementById('deadlineList');
         const date = new Date(currentYear, currentMonth, 1);
         document.getElementById('monthDisplay').innerText = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        
         grid.innerHTML = '<div class="day-label">S</div><div class="day-label">M</div><div class="day-label">T</div><div class="day-label">W</div><div class="day-label">T</div><div class="day-label">F</div><div class="day-label">S</div>';
+        
         const monthItems = taxRegistry[currentMonth] || [];
         list.innerHTML = '<h4 style="margin-top:0; color:var(--accent-green); font-size:0.9rem;">STATUTORY CHECKLIST</h4>';
+        
         if (monthItems.length === 0) {
             list.innerHTML += '<p style="color:var(--text-low); font-size: 0.9rem;">No major deadlines scheduled.</p>';
         } else {
             monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d} (${i.t})</small></div>`);
         }
+
         const start = new Date(currentYear, currentMonth, 1).getDay();
         const len = new Date(currentYear, currentMonth + 1, 0).getDate();
         for(let i=0; i<start; i++) grid.innerHTML += '<div></div>';
@@ -254,6 +263,7 @@
     }
 
     function changeMonth(n) { currentMonth += n; build(); }
+
     function link(d) {
         const svg = document.getElementById('connector-canvas');
         const sEl = document.getElementById(`date-${d}`);
