@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDS Interest Calculator - Vadiraj</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-pure: #000000;
+            --card-bg: #111111;
+            --accent-green: #00ff88; 
+            --accent-blue: #00a2ff;  
+            --text-high: #ffffff;
+            --text-low: #888888;
+            --deadline-red: #ff3333;
+            --border-color: #222222;
+            --error-bg: rgba(255, 51, 51, 0.1);
+            --error-border: rgba(255, 51, 51, 0.3);
+        }
+
+        * { box-sizing: border-box; scroll-behavior: smooth; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; flex-direction: column; align-items: center; padding: 40px 20px; min-height: 100vh; }
+
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: var(--accent-blue); text-decoration: none; font-size: 0.9rem; font-weight: 500; margin-bottom: 30px; transition: 0.2s; align-self: flex-start; max-width: 800px; width: 100%; margin-left: auto; margin-right: auto; }
+        .back-btn:hover { color: var(--text-high); transform: translateX(-5px); }
+
+        .calculator-wrapper { width: 100%; max-width: 800px; background: var(--card-bg); border-radius: 24px; padding: 40px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        header { margin-bottom: 30px; text-align: center; }
+        header h1 { font-size: 1.8rem; margin: 0; color: var(--text-high); }
+        header p { color: var(--text-low); margin-top: 8px; font-size: 0.9rem; }
+
+        .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .tab-btn { background: #0a0a0a; border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; color: var(--text-high); font-size: 0.95rem; cursor: pointer; transition: 0.3s; font-weight: 600; }
+        .tab-btn:hover { border-color: var(--text-low); }
+        .tab-btn.active { border-color: var(--accent-green); background: #051a0f; color: var(--accent-green); }
+
+        .calc-panel { display: none; animation: fadeIn 0.4s; }
+        .calc-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group.full-width { grid-column: span 2; }
+        label { color: var(--text-low); font-size: 0.85rem; font-weight: 500; }
+        input { background: #181818; border: 1px solid var(--border-color); color: var(--text-high); padding: 12px 15px; border-radius: 8px; font-family: inherit; font-size: 1rem; transition: 0.2s; }
+        input:focus { border-color: var(--accent-blue); outline: none; background: #222; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
+        .btn-group { display: flex; gap: 15px; margin-top: 10px; }
+        .calc-btn { flex: 2; background: var(--accent-blue); color: #000; border: none; padding: 15px; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .calc-btn:hover { background: #0088ff; transform: translateY(-2px); }
+        .calc-btn.green-btn { background: var(--accent-green); }
+        .calc-btn.green-btn:hover { background: #00cc6a; }
+        
+        .reset-btn { flex: 1; background: transparent; color: var(--text-low); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .reset-btn:hover { background: #181818; color: var(--text-high); }
+
+        .error-msg { color: #ffcccc; background: var(--error-bg); padding: 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid var(--error-border); margin-bottom: 20px; display: none; text-align: center; }
+
+        .result-card { background: #0a0a0a; border: 1px solid var(--border-color); border-left: 4px solid var(--accent-blue); padding: 25px; border-radius: 16px; margin-top: 30px; display: none; }
+        .result-card.active { display: block; animation: fadeIn 0.4s; }
+        .result-card.green-border { border-left-color: var(--accent-green); }
+        
+        .result-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed var(--border-color); }
+        .result-row:last-child { border-bottom: none; padding-bottom: 0; margin-top: 10px; }
+        
+        .res-label { color: var(--text-low); font-size: 0.9rem; font-weight: 500; }
+        .res-value { color: var(--text-high); font-size: 1.1rem; font-weight: 700; }
+        .total-interest { font-size: 1.6rem; color: var(--accent-blue); }
+        .total-interest.green-text { color: var(--accent-green); }
+
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; border: 1px solid transparent; }
+        .badge-danger { background: rgba(255, 51, 51, 0.1); color: var(--deadline-red); border-color: rgba(255, 51, 51, 0.3); }
+        .badge-success { background: rgba(0, 255, 136, 0.1); color: var(--accent-green); border-color: rgba(0, 255, 136, 0.3); }
+
+        @media (max-width: 600px) {
+            .input-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="Index.html" class="back-btn">← Back to Dashboard</a>
+
+    <div class="calculator-wrapper">
+        <header>
+            <h1>TDS Interest Calculator</h1>
+            <p>Compute penal interest under Section 201(1A)</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('deduction', this)">Late Deduction (1%)</button>
+            <button class="tab-btn" onclick="switchTab('payment', this)">Late Payment (1.5%)</button>
+        </div>
+
+        <div id="panel-deduction" class="calc-panel active">
+            <form id="form-deduction">
+                <div class="input-grid">
+                    <div class="form-group full-width">
+                        <label>Amount Paid / Credited (₹) (Optional)</label>
+                        <input type="number" id="ld-base" placeholder="e.g. 100000" min="0">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>TDS Amount (₹)</label>
+                        <input type="number" id="ld-tds" placeholder="e.g. 10000" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Payment / Credit</label>
+                        <input type="date" id="ld-start">
+                    </div>
+                    <div class="form-group">
+                        <label>Actual Date of Deduction</label>
+                        <input type="date" id="ld-end">
+                    </div>
+                </div>
+
+                <div id="ld-error" class="error-msg"></div>
+
+                <div class="btn-group">
+                    <button type="button" class="calc-btn" onclick="calcDeduction()">Calculate 1% Interest</button>
+                    <button type="button" class="reset-btn" onclick="resetForm('deduction')">Reset</button>
+                </div>
+
+                <div id="ld-result" class="result-card">
+                    <div class="result-row">
+                        <span class="res-label">Status:</span>
+                        <span id="ld-status" class="status-badge">-</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="res-label">Calendar Months Touched:</span>
+                        <span id="ld-months" class="res-value">0</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="res-label">Interest Amount (1%):</span>
+                        <span id="ld-total" class="res-value total-interest">₹ 0.00</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div id="panel-payment" class="calc-panel">
+            <form id="form-payment">
+                <div class="input-grid">
+                    <div class="form-group full-width">
+                        <label>TDS Amount Deducted (₹)</label>
+                        <input type="number" id="lp-tds" placeholder="e.g. 10000" min="0">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Date of Deduction</label>
+                        <input type="date" id="lp-deduct">
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date for Deposit</label>
+                        <input type="date" id="lp-due">
+                    </div>
+                    <div class="form-group">
+                        <label>Actual Date of Deposit</label>
+                        <input type="date" id="lp-deposit">
+                    </div>
+                </div>
+
+                <div id="lp-error" class="error-msg"></div>
+
+                <div class="btn-group">
+                    <button type="button" class="calc-btn green-btn" onclick="calcPayment()">Calculate 1.5% Interest</button>
+                    <button type="button" class="reset-btn" onclick="resetForm('payment')">Reset</button>
+                </div>
+
+                <div id="lp-result" class="result-card green-border">
+                    <div class="result-row">
+                        <span class="res-label">Delay Status:</span>
+                        <span id="lp-status" class="status-badge">-</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="res-label">Months for Calculation:</span>
+                        <span id="lp-months" class="res-value">0</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="res-label">Interest Amount (1.5%):</span>
+                        <span id="lp-total" class="res-value total-interest green-text">₹ 0.00</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        // Format Currency utility
+        const formatINR = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+
+        // Calendar month difference utility (Any part of month = full month)
+        function getCalendarMonths(start, end) {
+            if (start > end) return 0;
+            return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.calc-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`panel-${tabId}`).classList.add('active');
+            btn.classList.add('active');
+            
+            // Hide results when switching
+            document.getElementById('ld-result').style.display = 'none';
+            document.getElementById('lp-result').style.display = 'none';
+            document.getElementById('ld-error').style.display = 'none';
+            document.getElementById('lp-error').style.display = 'none';
+        }
+
+        function resetForm(type) {
+            document.getElementById(`form-${type}`).reset();
+            document.getElementById(`${type === 'deduction' ? 'ld' : 'lp'}-result`).style.display = 'none';
+            document.getElementById(`${type === 'deduction' ? 'ld' : 'lp'}-error`).style.display = 'none';
+        }
+
+        function showError(prefix, msg) {
+            const errEl = document.getElementById(`${prefix}-error`);
+            errEl.innerText = msg;
+            errEl.style.display = 'block';
+            document.getElementById(`${prefix}-result`).style.display = 'none';
+        }
+
+        // --- LATE DEDUCTION (1%) LOGIC ---
+        function calcDeduction() {
+            document.getElementById('ld-error').style.display = 'none';
+            
+            const tdsAmt = parseFloat(document.getElementById('ld-tds').value);
+            const startStr = document.getElementById('ld-start').value;
+            const endStr = document.getElementById('ld-end').value;
+
+            if (!tdsAmt || !startStr || !endStr) {
+                return showError('ld', 'Please fill in the TDS Amount and both dates.');
+            }
+
+            const dStart = new Date(startStr);
+            const dEnd = new Date(endStr);
+
+            if (dStart > dEnd) {
+                return showError('ld', 'Date of Payment cannot be after the Date of Deduction.');
+            }
+
+            const months = getCalendarMonths(dStart, dEnd);
+            const interest = tdsAmt * 0.01 * months;
+
+            // Update UI
+            document.getElementById('ld-status').innerText = months > 0 ? "Delayed Deduction" : "On Time";
+            document.getElementById('ld-status').className = months > 0 ? "status-badge badge-danger" : "status-badge badge-success";
+            document.getElementById('ld-months').innerText = months;
+            document.getElementById('ld-total').innerText = formatINR(interest);
+            
+            document.getElementById('ld-result').style.display = 'block';
+        }
+
+        // --- LATE PAYMENT (1.5%) LOGIC ---
+        function calcPayment() {
+            document.getElementById('lp-error').style.display = 'none';
+
+            const tdsAmt = parseFloat(document.getElementById('lp-tds').value);
+            const dedStr = document.getElementById('lp-deduct').value;
+            const dueStr = document.getElementById('lp-due').value;
+            const depStr = document.getElementById('lp-deposit').value;
+
+            if (!tdsAmt || !dedStr || !dueStr || !depStr) {
+                return showError('lp', 'Please fill in all fields correctly.');
+            }
+
+            const dDeduct = new Date(dedStr);
+            const dDue = new Date(dueStr);
+            const dDeposit = new Date(depStr);
+
+            if (dDeduct > dDeposit) {
+                return showError('lp', 'Date of Deduction cannot be after Date of Deposit.');
+            }
+
+            let months = 0;
+            let interest = 0;
+            let status = "Paid On Time";
+            let badgeClass = "status-badge badge-success";
+
+            // Check if delayed
+            if (dDeposit > dDue) {
+                status = "Late Payment";
+                badgeClass = "status-badge badge-danger";
+                
+                // Start Date = Deduction Date + 1 (handles the last day of month rule automatically)
+                let startPeriod = new Date(dedStr);
+                startPeriod.setDate(startPeriod.getDate() + 1);
+
+                months = getCalendarMonths(startPeriod, dDeposit);
+                
+                // Minimum 1 month interest if crossing due date but start > end mathematically
+                if(months === 0) months = 1; 
+
+                interest = tdsAmt * 0.015 * months;
+            }
+
+            // Update UI
+            document.getElementById('lp-status').innerText = status;
+            document.getElementById('lp-status').className = badgeClass;
+            document.getElementById('lp-months').innerText = months;
+            document.getElementById('lp-total').innerText = formatINR(interest);
+            
+            document.getElementById('lp-result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
