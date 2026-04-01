@@ -20,7 +20,6 @@
         * { box-sizing: border-box; scroll-behavior: smooth; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; overflow-x: hidden; }
 
-        /* Sidebar */
         .sidebar { width: 260px; background: var(--bg-pure); height: 100vh; position: fixed; border-right: 1px solid var(--border-color); z-index: 100; }
         .profile-area { padding: 50px 30px; border-bottom: 1px solid var(--border-color); }
         .profile-area h2 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; color: var(--text-high); }
@@ -29,14 +28,12 @@
         .nav-item { padding: 18px 30px; cursor: pointer; transition: 0.3s; color: var(--text-low); font-size: 0.9rem; }
         .nav-item:hover { color: var(--text-high); background: #0a0a0a; }
 
-        /* Main Content */
         .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); position: relative; }
 
         header { margin-bottom: 30px; }
         header h1 { font-size: 1.8rem; margin: 0; color: var(--text-high); }
         header p { color: var(--text-low); margin-top: 5px; }
 
-        /* Banner Notice */
         .notice-bar { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); color: #fcd34d; padding: 12px 20px; border-radius: 12px; margin-bottom: 30px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
 
         .calendar-nav { display: flex; align-items: center; gap: 25px; margin-bottom: 30px; }
@@ -60,7 +57,6 @@
 
         #tools { margin-top: 50px; }
         .bucket-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; perspective: 1000px; }
-        
         .bucket-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; color: var(--text-high); font-size: 1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 500; transform-style: preserve-3d; }
         .bucket-btn.active { border-color: var(--accent-blue); background: #000a15; }
         
@@ -72,7 +68,6 @@
         .tool-flip-card { background-color: transparent; perspective: 1000px; height: 160px; cursor: pointer; }
         .tool-flip-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
         .tool-flip-card.is-flipped .tool-flip-inner { transform: rotateY(180deg); }
-        
         .tool-flip-front, .tool-flip-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .tool-flip-back { transform: rotateY(180deg); background: #051a0f; border-color: var(--accent-green); }
         
@@ -230,7 +225,7 @@
                     <span class="tag">Financial Reporting & Auditing</span>
                     <span class="tag">Process Automation & Workflow</span>
                     <span class="tag">Tally ERP, Winman, Clear Tax</span>
-                    <span class="tag">Advanced Excel & Power Automate</span>
+                    <span class="tag">Advanced Excel & Microsoft Power Automate</span>
                 </div>
                 <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem; width: 100%; margin-top: 20px;" onclick="flipAbout()">⤶ Back to Contact</button>
             </div>
@@ -245,19 +240,18 @@
     let currentYear = today.getFullYear(); 
 
     const taxRegistry = {
-        // 0 is Jan, 1 is Feb, 2 is Mar, 3 is Apr, 4 is May, 5 is Jun, 6 is Jul, 7 is Aug, 8 is Sep, 9 is Oct, 10 is Nov, 11 is Dec
         0: [ { d: 7, l: "TDS & TCS Payment", t: "Dec Deductions" }, { d: 11, l: "GSTR-1", t: "Dec Month" }, { d: 15, l: "TCS Filing", t: "Q3 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Dec Month" }, { d: 31, l: "TDS Filing", t: "Q3 Form 24Q/26Q" } ],
         1: [ { d: 7, l: "TDS & TCS Payment", t: "Jan Deductions" }, { d: 11, l: "GSTR-1", t: "Jan Month" }, { d: 20, l: "GSTR-3B", t: "Jan Month" } ],
-        2: [ { d: 7, l: "TDS & TCS Payment", t: "Feb Deductions" }, { d: 11, l: "GSTR-1", t: "Feb Month" }, { d: 15, l: "Advance Tax", t: "4th Installment" }, { d: 20, l: "GSTR-3B", t: "Feb Month" }, { d: 31, l: "Revised ITR", t: "Deadline" } ],
+        2: [ { d: 7, l: "TDS & TCS Payment", t: "Feb Deductions" }, { d: 11, l: "GSTR-1", t: "Feb Month" }, { d: 15, l: "Advance Tax", t: "Q4 Final Installment" }, { d: 20, l: "GSTR-3B", t: "Feb Month" }, { d: 31, l: "Updated ITR", t: "Deadline (ITR-U)" } ],
         3: [ { d: 7, l: "TCS Payment", t: "Mar Collections" }, { d: 11, l: "GSTR-1", t: "Mar Month" }, { d: 20, l: "GSTR-3B", t: "Mar Month" }, { d: 30, l: "TDS Payment", t: "Mar Deductions" } ],
         4: [ { d: 7, l: "TDS & TCS Payment", t: "Apr Deductions" }, { d: 11, l: "GSTR-1", t: "Apr Month" }, { d: 15, l: "TCS Filing", t: "Q4 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Apr Month" }, { d: 31, l: "TDS Filing", t: "Q4 Form 24Q/26Q" } ],
-        5: [ { d: 7, l: "TDS & TCS Payment", t: "May Deductions" }, { d: 11, l: "GSTR-1", t: "May Month" }, { d: 15, l: "Advance Tax", t: "1st Installment" }, { d: 20, l: "GSTR-3B", t: "May Month" } ],
+        5: [ { d: 7, l: "TDS & TCS Payment", t: "May Deductions" }, { d: 11, l: "GSTR-1", t: "May Month" }, { d: 15, l: "Advance Tax", t: "Q1 1st Installment" }, { d: 20, l: "GSTR-3B", t: "May Month" } ],
         6: [ { d: 7, l: "TDS & TCS Payment", t: "Jun Deductions" }, { d: 11, l: "GSTR-1", t: "Jun Month" }, { d: 15, l: "TCS Filing", t: "Q1 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Jun Month" }, { d: 31, l: "TDS Filing", t: "Q1 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Non-Audit Cases" } ],
         7: [ { d: 7, l: "TDS & TCS Payment", t: "Jul Deductions" }, { d: 11, l: "GSTR-1", t: "Jul Month" }, { d: 20, l: "GSTR-3B", t: "Jul Month" } ],
-        8: [ { d: 7, l: "TDS & TCS Payment", t: "Aug Deductions" }, { d: 11, l: "GSTR-1", t: "Aug Month" }, { d: 15, l: "Advance Tax", t: "2nd Installment" }, { d: 20, l: "GSTR-3B", t: "Aug Month" }, { d: 30, l: "Tax Audit Report", t: "Statutory Due" } ],
+        8: [ { d: 7, l: "TDS & TCS Payment", t: "Aug Deductions" }, { d: 11, l: "GSTR-1", t: "Aug Month" }, { d: 15, l: "Advance Tax", t: "Q2 2nd Installment" }, { d: 20, l: "GSTR-3B", t: "Aug Month" }, { d: 30, l: "Tax Audit Report", t: "Form 3CA/3CB-3CD" } ],
         9: [ { d: 7, l: "TDS & TCS Payment", t: "Sep Deductions" }, { d: 11, l: "GSTR-1", t: "Sep Month" }, { d: 15, l: "TCS Filing", t: "Q2 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Sep Month" }, { d: 31, l: "TDS Filing", t: "Q2 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Audit Cases" }, { d: 31, l: "TP Report", t: "Form 3CEB" } ],
         10: [ { d: 7, l: "TDS & TCS Payment", t: "Oct Deductions" }, { d: 11, l: "GSTR-1", t: "Oct Month" }, { d: 20, l: "GSTR-3B", t: "Oct Month" }, { d: 30, l: "ITR Filing", t: "TP Cases" } ],
-        11: [ { d: 7, l: "TDS & TCS Payment", t: "Nov Deductions" }, { d: 11, l: "GSTR-1", t: "Nov Month" }, { d: 15, l: "Advance Tax", t: "3rd Installment" }, { d: 20, l: "GSTR-3B", t: "Nov Month" }, { d: 31, l: "Belated/Revised ITR", t: "Deadline" } ]
+        11: [ { d: 7, l: "TDS & TCS Payment", t: "Nov Deductions" }, { d: 11, l: "GSTR-1", t: "Nov Month" }, { d: 15, l: "Advance Tax", t: "Q3 3rd Installment" }, { d: 20, l: "GSTR-3B", t: "Nov Month" }, { d: 31, l: "Belated/Revised ITR", t: "Deadline" } ]
     };
 
     function build() {
