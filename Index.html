@@ -76,7 +76,7 @@
         .tool-launch-btn { background: var(--accent-green); color: #000; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: 700; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(5px); justify-content: center; align-items: center; }
-        .flip-card { background-color: transparent; width: 90%; max-width: 550px; height: 580px; perspective: 1000px; }
+        .flip-card { background-color: transparent; width: 90%; max-width: 550px; height: 600px; perspective: 1000px; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
         .flip-card.is-flipped .flip-card-inner { transform: rotateY(180deg); }
         .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 40px; overflow-y: auto; }
@@ -239,16 +239,17 @@
     let currentMonth = today.getMonth(); 
     let currentYear = today.getFullYear(); 
 
+    // Javascript months: 0 = Jan, 1 = Feb, 2 = Mar, 3 = Apr, 4 = May, 5 = Jun, 6 = Jul, 7 = Aug, 8 = Sep, 9 = Oct, 10 = Nov, 11 = Dec
     const taxRegistry = {
         0: [ { d: 7, l: "TDS & TCS Payment", t: "Dec Deductions" }, { d: 11, l: "GSTR-1", t: "Dec Month" }, { d: 15, l: "TCS Filing", t: "Q3 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Dec Month" }, { d: 31, l: "TDS Filing", t: "Q3 Form 24Q/26Q" } ],
         1: [ { d: 7, l: "TDS & TCS Payment", t: "Jan Deductions" }, { d: 11, l: "GSTR-1", t: "Jan Month" }, { d: 20, l: "GSTR-3B", t: "Jan Month" } ],
         2: [ { d: 7, l: "TDS & TCS Payment", t: "Feb Deductions" }, { d: 11, l: "GSTR-1", t: "Feb Month" }, { d: 15, l: "Advance Tax", t: "Q4 Final Installment" }, { d: 20, l: "GSTR-3B", t: "Feb Month" }, { d: 31, l: "Updated ITR", t: "Deadline (ITR-U)" } ],
-        3: [ { d: 7, l: "TCS Payment", t: "Mar Collections" }, { d: 11, l: "GSTR-1", t: "Mar Month" }, { d: 20, l: "GSTR-3B", t: "Mar Month" }, { d: 30, l: "TDS Payment", t: "Mar Deductions" } ],
+        3: [ { d: 7, l: "TCS Payment", t: "Mar Collections" }, { d: 11, l: "GSTR-1", t: "Mar Month" }, { d: 20, l: "GSTR-3B", t: "Mar Month" }, { d: 30, l: "March TDS Payment", t: "Due Today (Apr 30)" } ],
         4: [ { d: 7, l: "TDS & TCS Payment", t: "Apr Deductions" }, { d: 11, l: "GSTR-1", t: "Apr Month" }, { d: 15, l: "TCS Filing", t: "Q4 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Apr Month" }, { d: 31, l: "TDS Filing", t: "Q4 Form 24Q/26Q" } ],
         5: [ { d: 7, l: "TDS & TCS Payment", t: "May Deductions" }, { d: 11, l: "GSTR-1", t: "May Month" }, { d: 15, l: "Advance Tax", t: "Q1 1st Installment" }, { d: 20, l: "GSTR-3B", t: "May Month" } ],
         6: [ { d: 7, l: "TDS & TCS Payment", t: "Jun Deductions" }, { d: 11, l: "GSTR-1", t: "Jun Month" }, { d: 15, l: "TCS Filing", t: "Q1 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Jun Month" }, { d: 31, l: "TDS Filing", t: "Q1 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Non-Audit Cases" } ],
         7: [ { d: 7, l: "TDS & TCS Payment", t: "Jul Deductions" }, { d: 11, l: "GSTR-1", t: "Jul Month" }, { d: 20, l: "GSTR-3B", t: "Jul Month" } ],
-        8: [ { d: 7, l: "TDS & TCS Payment", t: "Aug Deductions" }, { d: 11, l: "GSTR-1", t: "Aug Month" }, { d: 15, l: "Advance Tax", t: "Q2 2nd Installment" }, { d: 20, l: "GSTR-3B", t: "Aug Month" }, { d: 30, l: "Tax Audit Report", t: "Form 3CA/3CB-3CD" } ],
+        8: [ { d: 7, l: "TDS & TCS Payment", t: "Aug Deductions" }, { d: 11, l: "GSTR-1", t: "Aug Month" }, { d: 15, l: "Advance Tax", t: "Q2 2nd Installment" }, { d: 20, l: "GSTR-3B", t: "Aug Month" }, { d: 30, l: "Tax Audit Report", t: "Statutory Due" } ],
         9: [ { d: 7, l: "TDS & TCS Payment", t: "Sep Deductions" }, { d: 11, l: "GSTR-1", t: "Sep Month" }, { d: 15, l: "TCS Filing", t: "Q2 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Sep Month" }, { d: 31, l: "TDS Filing", t: "Q2 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Audit Cases" }, { d: 31, l: "TP Report", t: "Form 3CEB" } ],
         10: [ { d: 7, l: "TDS & TCS Payment", t: "Oct Deductions" }, { d: 11, l: "GSTR-1", t: "Oct Month" }, { d: 20, l: "GSTR-3B", t: "Oct Month" }, { d: 30, l: "ITR Filing", t: "TP Cases" } ],
         11: [ { d: 7, l: "TDS & TCS Payment", t: "Nov Deductions" }, { d: 11, l: "GSTR-1", t: "Nov Month" }, { d: 15, l: "Advance Tax", t: "Q3 3rd Installment" }, { d: 20, l: "GSTR-3B", t: "Nov Month" }, { d: 31, l: "Belated/Revised ITR", t: "Deadline" } ]
