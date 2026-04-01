@@ -20,6 +20,7 @@
         * { box-sizing: border-box; scroll-behavior: smooth; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; overflow-x: hidden; }
 
+        /* Sidebar */
         .sidebar { width: 260px; background: var(--bg-pure); height: 100vh; position: fixed; border-right: 1px solid var(--border-color); z-index: 100; }
         .profile-area { padding: 50px 30px; border-bottom: 1px solid var(--border-color); }
         .profile-area h2 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; color: var(--text-high); }
@@ -28,12 +29,14 @@
         .nav-item { padding: 18px 30px; cursor: pointer; transition: 0.3s; color: var(--text-low); font-size: 0.9rem; }
         .nav-item:hover { color: var(--text-high); background: #0a0a0a; }
 
+        /* Main Content */
         .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); position: relative; }
 
         header { margin-bottom: 30px; }
         header h1 { font-size: 1.8rem; margin: 0; color: var(--text-high); }
         header p { color: var(--text-low); margin-top: 5px; }
 
+        /* Banner Notice */
         .notice-bar { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); color: #fcd34d; padding: 12px 20px; border-radius: 12px; margin-bottom: 30px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
 
         .calendar-nav { display: flex; align-items: center; gap: 25px; margin-bottom: 30px; }
@@ -54,7 +57,6 @@
 
         #connector-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
         .connection-line { fill: none; stroke: var(--deadline-red); stroke-width: 2; stroke-dasharray: 6; animation: dash 1s linear infinite; }
-        @keyframes dash { from { stroke-dashoffset: 12; } to { stroke-dashoffset: 0; } }
 
         #tools { margin-top: 50px; }
         .bucket-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; perspective: 1000px; }
@@ -204,8 +206,8 @@
             <div class="flip-card-front">
                 <span class="close-btn" onclick="closeAbout()">&times;</span>
                 <h2>About Vadiraj</h2>
-                <p>Finance and Tax professional with 6+ years of professional experience. Currently working in Tax Technology and Product Compliance.</p>
-                <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem; width: 100%; margin-bottom: 20px;" onclick="flipAbout()">Read Detailed Summary ⤾</button>
+                <p>Finance and Tax professional with 6+ years of experience in Direct Tax, TDS, GST, and Transfer Pricing (TP) compliance.</p>
+                <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem; width: 100%; margin-bottom: 20px;" onclick="flipAbout()">Read Full Summary ⤾</button>
                 <div class="contact-grid">
                     <a href="mailto:vadiking8234@gmail.com" class="contact-btn">✉️ vadiking8234@gmail.com</a>
                     <a href="https://www.linkedin.com/in/vadiking/" target="_blank" class="contact-btn">💼 LinkedIn Profile</a>
@@ -228,7 +230,7 @@
                     <span class="tag">Financial Reporting & Auditing</span>
                     <span class="tag">Process Automation & Workflow</span>
                     <span class="tag">Tally ERP, Winman, Clear Tax</span>
-                    <span class="tag">Advanced Excel & Microsoft Power Automate</span>
+                    <span class="tag">Advanced Excel & Power Automate</span>
                 </div>
                 <button class="bucket-btn" style="padding: 10px 20px; font-size: 0.9rem; width: 100%; margin-top: 20px;" onclick="flipAbout()">⤶ Back to Contact</button>
             </div>
@@ -243,18 +245,19 @@
     let currentYear = today.getFullYear(); 
 
     const taxRegistry = {
-        0: [ { d: 7, l: "TDS & TCS Payment", t: "December Deductions" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "TCS Filing", t: "Q3 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "TDS Filing", t: "Q3 Form 24Q/26Q" } ],
-        1: [ { d: 7, l: "TDS & TCS Payment", t: "January Deductions" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" } ],
-        2: [ { d: 7, l: "TDS & TCS Payment", t: "February Deductions" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "Advance Tax", t: "Q4 Final Installment" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "Revised ITR", t: "Budget 2026 Deadline" } ],
-        3: [ { d: 7, l: "TCS Payment", t: "March Collections" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 30, l: "TDS Payment", t: "March Deductions" } ],
-        4: [ { d: 7, l: "TDS & TCS Payment", t: "April Deductions" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "TCS Filing", t: "Q4 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Monthly" }, { d: 31, l: "TDS Filing", t: "Q4 Form 24Q/26Q" } ],
-        5: [ { d: 7, l: "TDS & TCS Payment", t: "May Deductions" }, { d: 11, l: "GSTR-1", t: "Monthly" }, { d: 15, l: "Advance Tax", t: "Q1 1st Installment" }, { d: 20, l: "GSTR-3B", t: "Monthly" } ],
-        6: [ { d: 7, l: "TDS & TCS Payment", t: "June Deductions" }, { d: 15, l: "TCS Filing", t: "Q1 Form 27EQ" }, { d: 31, l: "TDS Filing", t: "Q1 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Non-Audit" } ],
-        7: [ { d: 7, l: "TDS & TCS Payment", t: "July Deductions" }, { d: 31, l: "ITR Filing", t: "ITR-3 & 4" } ],
-        8: [ { d: 7, l: "TDS & TCS Payment", t: "August Deductions" }, { d: 15, l: "Advance Tax", t: "Q2 2nd Installment" }, { d: 30, l: "Tax Audit Report", t: "Statutory Due" } ],
-        9: [ { d: 7, l: "TDS & TCS Payment", t: "September Deductions" }, { d: 15, l: "TCS Filing", t: "Q2 Form 27EQ" }, { d: 31, l: "TDS Filing", t: "Q2 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Audit Cases" } ],
-        10: [ { d: 7, l: "TDS & TCS Payment", t: "October Deductions" }, { d: 30, l: "TP Report", t: "Form 3CEB" } ],
-        11: [ { d: 7, l: "TDS & TCS Payment", t: "November Deductions" }, { d: 15, l: "Advance Tax", t: "Q3 3rd Installment" } ]
+        // 0 is Jan, 1 is Feb, 2 is Mar, 3 is Apr, 4 is May, 5 is Jun, 6 is Jul, 7 is Aug, 8 is Sep, 9 is Oct, 10 is Nov, 11 is Dec
+        0: [ { d: 7, l: "TDS & TCS Payment", t: "Dec Deductions" }, { d: 11, l: "GSTR-1", t: "Dec Month" }, { d: 15, l: "TCS Filing", t: "Q3 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Dec Month" }, { d: 31, l: "TDS Filing", t: "Q3 Form 24Q/26Q" } ],
+        1: [ { d: 7, l: "TDS & TCS Payment", t: "Jan Deductions" }, { d: 11, l: "GSTR-1", t: "Jan Month" }, { d: 20, l: "GSTR-3B", t: "Jan Month" } ],
+        2: [ { d: 7, l: "TDS & TCS Payment", t: "Feb Deductions" }, { d: 11, l: "GSTR-1", t: "Feb Month" }, { d: 15, l: "Advance Tax", t: "4th Installment" }, { d: 20, l: "GSTR-3B", t: "Feb Month" }, { d: 31, l: "Revised ITR", t: "Deadline" } ],
+        3: [ { d: 7, l: "TCS Payment", t: "Mar Collections" }, { d: 11, l: "GSTR-1", t: "Mar Month" }, { d: 20, l: "GSTR-3B", t: "Mar Month" }, { d: 30, l: "TDS Payment", t: "Mar Deductions" } ],
+        4: [ { d: 7, l: "TDS & TCS Payment", t: "Apr Deductions" }, { d: 11, l: "GSTR-1", t: "Apr Month" }, { d: 15, l: "TCS Filing", t: "Q4 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Apr Month" }, { d: 31, l: "TDS Filing", t: "Q4 Form 24Q/26Q" } ],
+        5: [ { d: 7, l: "TDS & TCS Payment", t: "May Deductions" }, { d: 11, l: "GSTR-1", t: "May Month" }, { d: 15, l: "Advance Tax", t: "1st Installment" }, { d: 20, l: "GSTR-3B", t: "May Month" } ],
+        6: [ { d: 7, l: "TDS & TCS Payment", t: "Jun Deductions" }, { d: 11, l: "GSTR-1", t: "Jun Month" }, { d: 15, l: "TCS Filing", t: "Q1 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Jun Month" }, { d: 31, l: "TDS Filing", t: "Q1 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Non-Audit Cases" } ],
+        7: [ { d: 7, l: "TDS & TCS Payment", t: "Jul Deductions" }, { d: 11, l: "GSTR-1", t: "Jul Month" }, { d: 20, l: "GSTR-3B", t: "Jul Month" } ],
+        8: [ { d: 7, l: "TDS & TCS Payment", t: "Aug Deductions" }, { d: 11, l: "GSTR-1", t: "Aug Month" }, { d: 15, l: "Advance Tax", t: "2nd Installment" }, { d: 20, l: "GSTR-3B", t: "Aug Month" }, { d: 30, l: "Tax Audit Report", t: "Statutory Due" } ],
+        9: [ { d: 7, l: "TDS & TCS Payment", t: "Sep Deductions" }, { d: 11, l: "GSTR-1", t: "Sep Month" }, { d: 15, l: "TCS Filing", t: "Q2 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Sep Month" }, { d: 31, l: "TDS Filing", t: "Q2 Form 24Q/26Q" }, { d: 31, l: "ITR Filing", t: "Audit Cases" }, { d: 31, l: "TP Report", t: "Form 3CEB" } ],
+        10: [ { d: 7, l: "TDS & TCS Payment", t: "Oct Deductions" }, { d: 11, l: "GSTR-1", t: "Oct Month" }, { d: 20, l: "GSTR-3B", t: "Oct Month" }, { d: 30, l: "ITR Filing", t: "TP Cases" } ],
+        11: [ { d: 7, l: "TDS & TCS Payment", t: "Nov Deductions" }, { d: 11, l: "GSTR-1", t: "Nov Month" }, { d: 15, l: "Advance Tax", t: "3rd Installment" }, { d: 20, l: "GSTR-3B", t: "Nov Month" }, { d: 31, l: "Belated/Revised ITR", t: "Deadline" } ]
     };
 
     function build() {
@@ -268,9 +271,13 @@
         
         grid.innerHTML = '<div class="day-label">S</div><div class="day-label">M</div><div class="day-label">T</div><div class="day-label">W</div><div class="day-label">T</div><div class="day-label">F</div><div class="day-label">S</div>';
         const monthItems = taxRegistry[currentMonth] || [];
-        list.innerHTML = '<h4 style="margin-top:0; color:var(--accent-green); font-size:0.9rem;">STATUTORY CHECKLIST</h4>';
-        if (monthItems.length === 0) { list.innerHTML += '<p style="color:var(--text-low); font-size: 0.9rem;">No major deadlines scheduled.</p>'; } 
-        else { monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d} (${i.t})</small></div>`); }
+        list.innerHTML = '<h4 style="margin-top:0; color:var(--accent-green); letter-spacing:1px; font-size:0.9rem;">STATUTORY CHECKLIST</h4>';
+        
+        if (monthItems.length === 0) {
+            list.innerHTML += '<p style="color:var(--text-low); font-size: 0.9rem;">No major deadlines scheduled.</p>';
+        } else {
+            monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><small style="color:var(--text-low)">Due: ${i.d} (${i.t})</small></div>`);
+        }
 
         const start = new Date(currentYear, currentMonth, 1).getDay();
         const len = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -283,32 +290,43 @@
     }
 
     function changeMonth(n) { currentMonth += n; build(); }
+
     function link(d) {
         const svg = document.getElementById('connector-canvas');
         const sEl = document.getElementById(`date-${d}`);
         const eEl = document.getElementById(`item-${d}`);
         const mainRect = document.querySelector('.main').getBoundingClientRect();
+        
         document.querySelectorAll('.deadline-item').forEach(el => el.classList.remove('active-deadline'));
         if(eEl) eEl.classList.add('active-deadline');
-        const s = sEl.getBoundingClientRect(); const e = eEl.getBoundingClientRect();
-        const x1 = s.left + s.width/2 - mainRect.left; const y1 = s.top + s.height/2 - mainRect.top;
-        const x2 = e.left - mainRect.left; const y2 = e.top + e.height/2 - mainRect.top;
+        
+        const s = sEl.getBoundingClientRect();
+        const e = eEl.getBoundingClientRect();
+
+        const x1 = s.left + s.width/2 - mainRect.left;
+        const y1 = s.top + s.height/2 - mainRect.top;
+        const x2 = e.left - mainRect.left;
+        const y2 = e.top + e.height/2 - mainRect.top;
+
         svg.innerHTML = `<path d="M ${x1} ${y1} C ${x1+150} ${y1-40}, ${x2-150} ${y2+40}, ${x2} ${y2}" class="connection-line" />`;
     }
 
     build();
+
     function switchTab(tabId, btnElement) {
         document.querySelectorAll('.tools-panel').forEach(panel => panel.classList.remove('active'));
         document.querySelectorAll('.bucket-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         btnElement.classList.add('active');
     }
+
     function comingSoon(btnElement, originalText) {
         if (btnElement.dataset.animating === "true") return;
         btnElement.dataset.animating = "true";
         document.querySelectorAll('.bucket-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tools-panel').forEach(panel => panel.classList.remove('active'));
         btnElement.style.transform = "rotateX(90deg)";
+        
         setTimeout(() => {
             btnElement.innerHTML = "Coming Soon ⏳";
             btnElement.style.transform = "rotateX(0deg)";
@@ -324,8 +342,12 @@
             }, 2000); 
         }, 300); 
     }
+
     function openAbout() { document.getElementById('aboutModal').style.display = 'flex'; }
-    function closeAbout() { document.getElementById('aboutModal').style.display = 'none'; setTimeout(() => { document.getElementById('aboutCard').classList.remove('is-flipped'); }, 300); }
+    function closeAbout() { 
+        document.getElementById('aboutModal').style.display = 'none'; 
+        setTimeout(() => { document.getElementById('aboutCard').classList.remove('is-flipped'); }, 300);
+    }
     function flipAbout() { document.getElementById('aboutCard').classList.toggle('is-flipped'); }
     window.onclick = function(event) { if (event.target == document.getElementById('aboutModal')) { closeAbout(); } }
 </script>
