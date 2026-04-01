@@ -177,7 +177,7 @@
                         </div>
                         <div class="tool-flip-back">
                             <p>Compute Late Deduction & Payment Interest automatically</p>
-                            <a href="TDS_Interest_Calculator.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
+                            <a href="TDS_Calcualtor.html" class="tool-launch-btn" onclick="event.stopPropagation()">Launch Tool</a>
                         </div>
                     </div>
                 </div>
@@ -255,7 +255,6 @@
     let currentMonth = today.getMonth(); 
     let currentYear = today.getFullYear(); 
 
-    // Javascript months: 0 = Jan, 1 = Feb, 2 = Mar, 3 = Apr, 4 = May, 5 = Jun, 6 = Jul, 7 = Aug, 8 = Sep, 9 = Oct, 10 = Nov, 11 = Dec
     const taxRegistry = {
         0: [ { d: 7, l: "TDS & TCS Payment", t: "Dec Deductions" }, { d: 11, l: "GSTR-1", t: "Dec Month" }, { d: 15, l: "TCS Filing", t: "Q3 Form 27EQ" }, { d: 20, l: "GSTR-3B", t: "Dec Month" }, { d: 31, l: "TDS Filing", t: "Q3 Form 24Q/26Q" } ],
         1: [ { d: 7, l: "TDS & TCS Payment", t: "Jan Deductions" }, { d: 11, l: "GSTR-1", t: "Jan Month" }, { d: 20, l: "GSTR-3B", t: "Jan Month" } ],
