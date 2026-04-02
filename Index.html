@@ -18,7 +18,6 @@
         }
 
         * { box-sizing: border-box; scroll-behavior: smooth; }
-        /* Lock body to exactly 100% of screen height and hide main scrollbar */
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; height: 100vh; overflow: hidden; }
 
         .sidebar { width: 260px; background: var(--bg-pure); height: 100vh; position: fixed; border-right: 1px solid var(--border-color); z-index: 100; }
@@ -29,10 +28,10 @@
         .nav-item { padding: 15px 30px; cursor: pointer; transition: 0.3s; color: var(--text-low); font-size: 0.9rem; }
         .nav-item:hover { color: var(--text-high); background: #0a0a0a; }
 
-        /* Make main area a flex column that fills exactly 100vh */
-        .main { margin-left: 260px; padding: 25px 40px; width: calc(100% - 260px); height: 100vh; position: relative; display: flex; flex-direction: column; overflow: hidden; }
+        /* Enabled overflow-y auto so it safely scrolls on extremely small screens instead of overlapping */
+        .main { margin-left: 260px; padding: 20px 30px; width: calc(100% - 260px); height: 100vh; position: relative; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
 
-        header { margin-bottom: 15px; flex-shrink: 0; }
+        header { margin-bottom: 10px; flex-shrink: 0; }
         header h1 { font-size: 1.8rem; margin: 0; color: var(--text-high); }
         header p { color: var(--text-low); margin-top: 5px; font-size: 0.85rem; }
 
@@ -43,31 +42,32 @@
         .arrow:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
         #monthDisplay { font-size: 1.2rem; margin: 0; width: 220px; text-align: center; letter-spacing: 1px; }
 
-        /* Let the grid take up all remaining middle space */
         .dashboard-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; flex: 1; min-height: 0; position: relative; }
 
-        .calendar-card { background: var(--card-bg); border-radius: 20px; padding: 20px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; }
+        /* Calendar card stretches fully and traps overflow */
+        .calendar-card { background: var(--card-bg); border-radius: 20px; padding: 15px 20px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Make deadline card scrollable internally if deadlines exceed box height */
-        .deadline-card { background: var(--card-bg); border-radius: 20px; padding: 20px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto; }
+        .deadline-card { background: var(--card-bg); border-radius: 20px; padding: 15px 20px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto; }
         
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
-        .day-label { color: var(--text-low); font-size: 0.7rem; font-weight: 700; margin-bottom: 10px; }
-        .day { aspect-ratio: 1; border-radius: 10px; background: #181818; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; border: 1px solid transparent; }
+        /* Grid stretches vertically instead of forcing squares */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: auto repeat(6, 1fr); gap: 6px; text-align: center; flex: 1; min-height: 0; }
+        .day-label { color: var(--text-low); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+        
+        /* Removed aspect-ratio: 1, now perfectly fits available height */
+        .day { border-radius: 8px; background: #181818; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; border: 1px solid transparent; width: 100%; height: 100%; min-height: 35px; }
         .day.highlight { border: 1px solid var(--accent-green); color: var(--accent-green); font-weight: 600; cursor: pointer; }
-        .day.highlight:hover { background: var(--accent-green); color: #000; transform: scale(1.1); }
+        .day.highlight:hover { background: var(--accent-green); color: #000; transform: scale(1.1); z-index: 2; }
 
-        .deadline-item { padding: 15px; margin-bottom: 10px; background: #0a0a0a; border-radius: 12px; border-left: 3px solid var(--accent-green); transition: 0.3s; font-size: 0.85rem; }
+        .deadline-item { padding: 12px 15px; margin-bottom: 10px; background: #0a0a0a; border-radius: 12px; border-left: 3px solid var(--accent-green); transition: 0.3s; font-size: 0.85rem; }
         .active-deadline { border-left-color: var(--deadline-red); background: #1a0505; transform: translateX(8px); }
 
         #connector-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
         .connection-line { fill: none; stroke: var(--deadline-red); stroke-width: 2; stroke-dasharray: 6; animation: dash 1s linear infinite; }
 
-        /* Tools section pushed to bottom */
-        #tools { margin-top: 20px; flex-shrink: 0; }
+        #tools { margin-top: 15px; flex-shrink: 0; padding-bottom: 15px; }
         #tools h3 { margin-bottom: 12px; }
         .bucket-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 0; perspective: 1000px; }
-        .bucket-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px 20px; border-radius: 16px; color: var(--text-high); font-size: 1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 600; transform-style: preserve-3d; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .bucket-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 16px; color: var(--text-high); font-size: 1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 600; transform-style: preserve-3d; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .bucket-btn:hover { border-color: var(--accent-blue); transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0, 162, 255, 0.2); }
         
         .tools-panel { display: none; animation: fadeIn 0.4s; }
@@ -76,7 +76,7 @@
 
         .tools-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
         
-        .tool-flip-card { background-color: transparent; perspective: 1000px; height: 150px; cursor: pointer; }
+        .tool-flip-card { background-color: transparent; perspective: 1000px; height: 160px; cursor: pointer; }
         .tool-flip-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
         .tool-flip-card.is-flipped .tool-flip-inner { transform: rotateY(180deg); }
         
@@ -158,7 +158,7 @@
     </div>
 
     <section id="tools">
-        <h3 style="color: var(--text-low); margin-bottom: 15px; font-size: 0.85rem; letter-spacing: 1px;">WORKFLOW UTILITIES</h3>
+        <h3 style="color: var(--text-low); margin-bottom: 12px; font-size: 0.85rem; letter-spacing: 1px;">WORKFLOW UTILITIES</h3>
         
         <div class="bucket-grid">
             <button class="bucket-btn" onclick="openToolsWindow('direct-tax', 'Direct Tax Utilities')">Direct Tax</button>
@@ -332,7 +332,6 @@
         }
         document.getElementById('connector-canvas').innerHTML = '';
         
-        // Re-draw lines after a short delay so DOM elements settle
         setTimeout(() => {
             const activeItem = monthItems[0];
             if (activeItem) link(activeItem.d);
@@ -347,23 +346,23 @@
         const eEl = document.getElementById(`item-${d}`);
         if (!sEl || !eEl) return;
         
-        const mainRect = document.querySelector('.main').getBoundingClientRect();
+        const mainEl = document.querySelector('.main');
+        const mainRect = mainEl.getBoundingClientRect();
         
         document.querySelectorAll('.deadline-item').forEach(el => el.classList.remove('active-deadline'));
         eEl.classList.add('active-deadline');
         
-        // Ensure element is scrolled into view in the deadline list
         eEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
         
-        // Short delay to allow scroll animation to finish before drawing line
         setTimeout(() => {
             const s = sEl.getBoundingClientRect();
             const e = eEl.getBoundingClientRect();
 
+            // Added mainEl.scrollTop to accurately draw the line if the user ever scrolls
             const x1 = s.left + s.width/2 - mainRect.left;
-            const y1 = s.top + s.height/2 - mainRect.top;
+            const y1 = s.top + s.height/2 - mainRect.top + mainEl.scrollTop;
             const x2 = e.left - mainRect.left;
-            const y2 = e.top + e.height/2 - mainRect.top;
+            const y2 = e.top + e.height/2 - mainRect.top + mainEl.scrollTop;
 
             svg.innerHTML = `<path d="M ${x1} ${y1} C ${x1+100} ${y1}, ${x2-100} ${y2}, ${x2} ${y2}" class="connection-line" />`;
         }, 100);
@@ -420,7 +419,6 @@
         if (event.target == document.getElementById('toolsModalWindow')) closeToolsWindow(); 
     }
     
-    // Ensure canvas redraws correctly if window is resized
     window.addEventListener('resize', () => {
         const activeItem = document.querySelector('.active-deadline');
         if(activeItem) {
