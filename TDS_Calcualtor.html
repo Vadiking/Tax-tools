@@ -75,6 +75,8 @@
         .badge-danger { background: rgba(255, 51, 51, 0.1); color: var(--deadline-red); border-color: rgba(255, 51, 51, 0.3); }
         .badge-success { background: rgba(0, 255, 136, 0.1); color: var(--accent-green); border-color: rgba(0, 255, 136, 0.3); }
 
+        .note { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; color: var(--text-low); font-size: 0.8rem; margin-top: 20px; line-height: 1.5; }
+
         @media (max-width: 600px) {
             .input-grid { grid-template-columns: 1fr; }
             .form-group.full-width { grid-column: span 1; }
@@ -101,20 +103,16 @@
             <form id="form-deduction">
                 <div class="input-grid">
                     <div class="form-group full-width">
-                        <label>Amount Paid / Credited (₹) (Optional)</label>
-                        <input type="number" id="ld-base" placeholder="e.g. 100000" min="0">
-                    </div>
-                    <div class="form-group full-width">
                         <label>TDS Amount (₹)</label>
                         <input type="number" id="ld-tds" placeholder="e.g. 10000" min="0">
                     </div>
                     <div class="form-group">
                         <label>Date of Payment / Credit</label>
-                        <input type="date" id="ld-start">
+                        <input type="date" id="ld-credit-date">
                     </div>
                     <div class="form-group">
                         <label>Actual Date of Deduction</label>
-                        <input type="date" id="ld-end">
+                        <input type="date" id="ld-deduct-date">
                     </div>
                 </div>
 
@@ -128,10 +126,10 @@
                 <div id="ld-result" class="result-card">
                     <div class="result-row">
                         <span class="res-label">Status:</span>
-                        <span id="ld-status" class="status-badge">-</span>
+                        <span id="ld-status" class="status-badge badge-danger">Delayed Deduction</span>
                     </div>
                     <div class="result-row">
-                        <span class="res-label">Calendar Months Touched:</span>
+                        <span class="res-label">Period of Delay (Months):</span>
                         <span id="ld-months" class="res-value">0</span>
                     </div>
                     <div class="result-row">
@@ -149,18 +147,18 @@
                         <label>TDS Amount Deducted (₹)</label>
                         <input type="number" id="lp-tds" placeholder="e.g. 10000" min="0">
                     </div>
-                    <div class="form-group full-width">
+                    <div class="form-group">
                         <label>Date of Deduction</label>
                         <input type="date" id="lp-deduct">
-                    </div>
-                    <div class="form-group">
-                        <label>Due Date for Deposit</label>
-                        <input type="date" id="lp-due">
                     </div>
                     <div class="form-group">
                         <label>Actual Date of Deposit</label>
                         <input type="date" id="lp-deposit">
                     </div>
+                </div>
+                
+                <div class="note">
+                    <strong>Smart Check Applied:</strong> System automatically calculates if deposit crossed the official due date (April 30th for March, 7th for other months). If late, interest is calculated from Deduction Date + 1.
                 </div>
 
                 <div id="lp-error" class="error-msg"></div>
@@ -176,7 +174,7 @@
                         <span id="lp-status" class="status-badge">-</span>
                     </div>
                     <div class="result-row">
-                        <span class="res-label">Months for Calculation:</span>
+                        <span class="res-label">Period of Delay (Months):</span>
                         <span id="lp-months" class="res-value">0</span>
                     </div>
                     <div class="result-row">
@@ -190,13 +188,13 @@
     </div>
 
     <script>
-        // Format Currency utility
         const formatINR = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
 
-        // Calendar month difference utility (Any part of month = full month)
-        function getCalendarMonths(start, end) {
-            if (start > end) return 0;
-            return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+        // Core logic: Calculate months or part thereof for Income Tax.
+        function calculateITMonths(start, end) {
+            if (start >= end) return 0;
+            let monthDiff = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+            return monthDiff + 1;
         }
 
         function switchTab(tabId, btn) {
@@ -206,7 +204,6 @@
             document.getElementById(`panel-${tabId}`).classList.add('active');
             btn.classList.add('active');
             
-            // Hide results when switching
             document.getElementById('ld-result').style.display = 'none';
             document.getElementById('lp-result').style.display = 'none';
             document.getElementById('ld-error').style.display = 'none';
@@ -231,25 +228,29 @@
             document.getElementById('ld-error').style.display = 'none';
             
             const tdsAmt = parseFloat(document.getElementById('ld-tds').value);
-            const startStr = document.getElementById('ld-start').value;
-            const endStr = document.getElementById('ld-end').value;
+            const startStr = document.getElementById('ld-credit-date').value;
+            const endStr = document.getElementById('ld-deduct-date').value;
 
             if (!tdsAmt || !startStr || !endStr) {
                 return showError('ld', 'Please fill in the TDS Amount and both dates.');
             }
 
-            const dStart = new Date(startStr);
-            const dEnd = new Date(endStr);
+            const dCredit = new Date(startStr);
+            const dDeduct = new Date(endStr);
 
-            if (dStart > dEnd) {
-                return showError('ld', 'Date of Payment cannot be after the Date of Deduction.');
+            if (dCredit > dDeduct) {
+                return showError('ld', 'Actual Date of Deduction cannot be before Date of Payment/Credit.');
             }
 
-            const months = getCalendarMonths(dStart, dEnd);
-            const interest = tdsAmt * 0.01 * months;
+            let months = calculateITMonths(dCredit, dDeduct);
+            
+            if (dCredit.toDateString() === dDeduct.toDateString()) {
+                months = 0;
+            }
 
-            // Update UI
-            document.getElementById('ld-status').innerText = months > 0 ? "Delayed Deduction" : "On Time";
+            const interest = Math.round(tdsAmt * months * 0.01);
+
+            document.getElementById('ld-status').innerText = months > 0 ? "Delayed Deduction" : "Paid On Time";
             document.getElementById('ld-status').className = months > 0 ? "status-badge badge-danger" : "status-badge badge-success";
             document.getElementById('ld-months').innerText = months;
             document.getElementById('ld-total').innerText = formatINR(interest);
@@ -263,44 +264,50 @@
 
             const tdsAmt = parseFloat(document.getElementById('lp-tds').value);
             const dedStr = document.getElementById('lp-deduct').value;
-            const dueStr = document.getElementById('lp-due').value;
             const depStr = document.getElementById('lp-deposit').value;
 
-            if (!tdsAmt || !dedStr || !dueStr || !depStr) {
+            if (!tdsAmt || !dedStr || !depStr) {
                 return showError('lp', 'Please fill in all fields correctly.');
             }
 
             const dDeduct = new Date(dedStr);
-            const dDue = new Date(dueStr);
             const dDeposit = new Date(depStr);
 
             if (dDeduct > dDeposit) {
                 return showError('lp', 'Date of Deduction cannot be after Date of Deposit.');
             }
 
+            // AUTO-CALCULATE THE DUE DATE
+            let dDue = new Date(dDeduct);
+            // In JavaScript, months are 0-indexed (2 = March)
+            if (dDeduct.getMonth() === 2) { 
+                dDue = new Date(dDeduct.getFullYear(), 3, 30); // April 30
+            } else {
+                dDue = new Date(dDeduct.getFullYear(), dDeduct.getMonth() + 1, 7); // 7th of next month
+            }
+
+            // Strip time components to strictly compare dates
+            dDeposit.setHours(0,0,0,0);
+            dDue.setHours(0,0,0,0);
+
             let months = 0;
             let interest = 0;
             let status = "Paid On Time";
             let badgeClass = "status-badge badge-success";
 
-            // Check if delayed
+            // If deposit is after the due date, it is a Late Payment
             if (dDeposit > dDue) {
                 status = "Late Payment";
                 badgeClass = "status-badge badge-danger";
                 
-                // Start Date = Deduction Date + 1 (handles the last day of month rule automatically)
-                let startPeriod = new Date(dedStr);
+                // Start Date = Deduction Date + 1 (handles the last day of month rule exactly as per notes)
+                let startPeriod = new Date(dDeduct);
                 startPeriod.setDate(startPeriod.getDate() + 1);
 
-                months = getCalendarMonths(startPeriod, dDeposit);
-                
-                // Minimum 1 month interest if crossing due date but start > end mathematically
-                if(months === 0) months = 1; 
-
-                interest = tdsAmt * 0.015 * months;
+                months = calculateITMonths(startPeriod, dDeposit);
+                interest = Math.round(tdsAmt * 0.015 * months);
             }
 
-            // Update UI
             document.getElementById('lp-status').innerText = status;
             document.getElementById('lp-status').className = badgeClass;
             document.getElementById('lp-months').innerText = months;
