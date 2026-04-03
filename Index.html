@@ -20,17 +20,16 @@
         * { box-sizing: border-box; scroll-behavior: smooth; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-pure); color: var(--text-high); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Sidebar Styling */
+        /* Sidebar */
         .sidebar { width: 260px; background: var(--bg-pure); height: 100vh; position: fixed; border-right: 1px solid var(--border-color); z-index: 100; transition: 0.3s; }
         .profile-area { padding: 40px 30px; border-bottom: 1px solid var(--border-color); }
         .profile-area h2 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; color: var(--text-high); }
         .profile-area p { font-size: 0.75rem; color: var(--text-low); margin-top: 5px; }
-
         .nav-links { display: flex; flex-direction: column; }
         .nav-item { padding: 15px 30px; cursor: pointer; transition: 0.3s; color: var(--text-low); font-size: 0.9rem; }
         .nav-item:hover { color: var(--text-high); background: #0a0a0a; }
 
-        /* Main Content Layout */
+        /* Main Window */
         .main { margin-left: 260px; padding: 20px 30px; width: calc(100% - 260px); height: 100vh; position: relative; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; transition: 0.3s; }
 
         header h1 { font-size: 1.8rem; margin: 0; color: var(--text-high); }
@@ -42,80 +41,56 @@
             color: var(--accent-blue); font-size: 0.9rem; font-weight: 600; text-decoration: none; 
             display: flex; align-items: center; gap: 8px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); 
         }
-        .gst-map-btn:hover { border-color: var(--accent-blue); background: #111; color: var(--text-high); }
+        .gst-map-btn:hover { border-color: var(--accent-blue); background: #111; }
 
         .search-container { position: relative; width: 100%; max-width: 380px; z-index: 50; }
-        .search-container input { width: 100%; background: #0a0a0a; border: 1px solid var(--border-color); padding: 14px 20px 14px 45px; border-radius: 12px; color: var(--text-high); font-size: 0.95rem; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
-        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-low); font-size: 1.1rem; pointer-events: none; }
+        .search-container input { width: 100%; background: #0a0a0a; border: 1px solid var(--border-color); padding: 14px 20px 14px 45px; border-radius: 12px; color: var(--text-high); font-size: 0.95rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-low); font-size: 1.1rem; }
         
-        .search-results { position: absolute; top: calc(100% + 10px); left: 0; right: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); max-height: 350px; overflow-y: auto; display: none; flex-direction: column; padding: 10px; }
-        .search-results.active { display: flex; }
+        .search-results { position: absolute; top: calc(100% + 10px); left: 0; right: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); max-height: 350px; overflow-y: auto; display: none; padding: 10px; }
+        .search-results.active { display: flex; flex-direction: column; }
+        .search-item { padding: 12px 15px; border-radius: 8px; color: var(--text-high); text-decoration: none; display: flex; flex-direction: column; gap: 4px; border-left: 3px solid transparent; }
+        .search-item:hover { background: rgba(0, 162, 255, 0.08); border-left-color: var(--accent-blue); padding-left: 22px; }
+
+        /* Calendar Nav */
+        .calendar-nav { display: flex; align-items: center; gap: 25px; margin-bottom: 15px; margin-top: 20px; }
+        .arrow { background: transparent; border: 1px solid var(--border-color); color: var(--text-high); width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        #monthDisplay { font-size: 1.2rem; margin: 0; width: 220px; text-align: center; letter-spacing: 1px; }
 
         /* Dashboard Grid */
-        .dashboard-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; flex: 1; min-height: 0; position: relative; margin-top: 20px; }
-        .calendar-card, .deadline-card { background: var(--card-bg); border-radius: 20px; padding: 15px 20px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .dashboard-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; flex: 1; min-height: 0; position: relative; }
+        .calendar-card, .deadline-card { background: var(--card-bg); border-radius: 20px; padding: 15px 20px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden; }
+        .deadline-card { overflow-y: auto; }
         
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
-        .day { border-radius: 8px; background: #181818; font-size: 0.85rem; height: 40px; display: flex; align-items: center; justify-content: center; }
-        .day.highlight { border: 1px solid var(--accent-green); color: var(--accent-green); cursor: pointer; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; flex: 1; }
+        .day-label { color: var(--text-low); font-size: 0.7rem; font-weight: 700; margin-bottom: 5px; }
+        .day { border-radius: 8px; background: #181818; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; height: 45px; border: 1px solid transparent; transition: 0.2s; }
+        .day.highlight { border: 1px solid var(--accent-green); color: var(--accent-green); font-weight: 600; cursor: pointer; }
+        .day.highlight:hover { background: var(--accent-green); color: #000; transform: scale(1.1); z-index: 2; }
 
-        #tools { margin-top: 15px; flex-shrink: 0; padding-bottom: 30px; }
-        .bucket-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
-        .bucket-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 16px; color: var(--text-high); font-size: 1rem; cursor: pointer; transition: 0.3s; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .deadline-item { padding: 12px 15px; margin-bottom: 10px; background: #0a0a0a; border-radius: 12px; border-left: 3px solid var(--accent-green); font-size: 0.85rem; transition: 0.3s; }
+        .active-deadline { border-left-color: var(--deadline-red); background: #1a0505; transform: translateX(8px); }
+
+        #connector-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .connection-line { fill: none; stroke: var(--deadline-red); stroke-width: 2; stroke-dasharray: 6; animation: dash 1s linear infinite; }
+
+        /* Tools */
+        #tools { margin-top: 15px; padding-bottom: 30px; }
+        .bucket-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .bucket-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 16px; color: var(--text-high); font-size: 1rem; cursor: pointer; transition: 0.3s; font-weight: 600; }
         .bucket-btn:hover { border-color: var(--accent-blue); transform: translateY(-3px); }
-        .bucket-btn.interview-btn { border-color: var(--accent-green); color: var(--accent-green); }
 
-        /* --- MOBILE RESPONSIVENESS UPDATES --- */
+        /* Responsive */
         @media (max-width: 900px) {
             body { flex-direction: column; overflow-y: auto; }
-            
-            /* Sidebar becomes top profile/nav bar */
-            .sidebar { 
-                width: 100%; height: auto; position: relative; 
-                border-right: none; border-bottom: 1px solid var(--border-color); 
-            }
-            .profile-area { padding: 20px; text-align: center; }
+            .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--border-color); }
             .nav-links { flex-direction: row; flex-wrap: wrap; justify-content: center; }
-            .nav-item { padding: 10px 15px; font-size: 0.8rem; }
-
-            /* Main content takes full width */
-            .main { margin-left: 0; width: 100%; height: auto; overflow: visible; padding: 20px 15px; }
-            
-            header { flex-direction: column; align-items: flex-start !important; gap: 15px; }
+            .main { margin-left: 0; width: 100%; height: auto; padding: 20px 15px; }
+            header { flex-direction: column; align-items: flex-start !important; }
             .header-actions { width: 100%; flex-direction: column; align-items: stretch; }
-            .gst-map-btn { justify-content: center; }
-            .search-container { max-width: 100%; }
-
-            /* Grid stacks to one column */
-            .dashboard-grid { grid-template-columns: 1fr; margin-top: 10px; }
-            .bucket-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            
-            .interview-content { padding: 20px; width: 95%; }
-            .q-text { font-size: 1.1rem; }
-            .cat-selector { flex-wrap: wrap; justify-content: center; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .bucket-grid { grid-template-columns: repeat(2, 1fr); }
         }
-
-        /* Modal Base */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; backdrop-filter: blur(10px); justify-content: center; align-items: center; padding: 20px; }
-        .interview-content { background: #0a0a0a; width: 100%; max-width: 800px; border-radius: 24px; border: 1px solid var(--border-color); padding: 40px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
-        .cat-selector { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; }
-        .cat-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-low); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-        .cat-btn.active { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(0, 162, 255, 0.1); }
-        
-        .q-area { min-height: 100px; margin-bottom: 20px; }
-        .q-text { font-size: 1.4rem; color: #fff; line-height: 1.4; font-weight: 500; }
-        .a-area { background: #111; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-top: 20px; display: none; }
-        .a-area p { color: var(--accent-green); font-size: 0.95rem; line-height: 1.6; margin: 0; }
-        
-        .interview-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; gap: 10px; }
-        .reveal-btn, .next-btn { padding: 12px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
-        .reveal-btn { background: var(--accent-blue); color: #000; border: none; }
-        .next-btn { background: transparent; border: 1px solid var(--accent-green); color: var(--accent-green); }
-        
-        .close-x { position: absolute; top: 20px; right: 25px; color: var(--text-low); font-size: 2rem; cursor: pointer; }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -128,17 +103,16 @@
     <div class="nav-links">
         <div class="nav-item" onclick="window.scrollTo(0,0)">Dashboard</div>
         <div class="nav-item" onclick="document.getElementById('tools').scrollIntoView()">Utilities</div>
-        <div class="nav-item" onclick="openAbout()">About Me</div>
     </div>
 </div>
 
 <div class="main">
+    <svg id="connector-canvas"></svg>
     <header style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 15px;">
         <div>
             <h1>Tax Management Portal</h1>
-            <p>Welcome back. Practice for your next interview or review compliance.</p>
+            <p>Welcome back. Review your upcoming statutory deadlines below.</p>
         </div>
-        
         <div class="header-actions">
             <a href="GST_MAP_Work.html" class="gst-map-btn"><span>📍</span> GST Codes</a>
             <div class="search-container">
@@ -149,6 +123,12 @@
         </div>
     </header>
 
+    <div class="calendar-nav">
+        <button class="arrow" onclick="changeMonth(-1)">&#10094;</button>
+        <h2 id="monthDisplay"></h2>
+        <button class="arrow" onclick="changeMonth(1)">&#10095;</button>
+    </div>
+
     <div class="dashboard-grid">
         <div class="calendar-card"><div class="calendar-grid" id="calendarGrid"></div></div>
         <div class="deadline-card" id="deadlineList"></div>
@@ -157,87 +137,84 @@
     <section id="tools">
         <h3 style="color: var(--text-low); margin-bottom: 12px; font-size: 0.85rem; letter-spacing: 1px;">WORKFLOW UTILITIES</h3>
         <div class="bucket-grid">
-            <button class="bucket-btn" onclick="openToolsWindow('direct-tax', 'Direct Tax Utilities')">Direct Tax</button>
+            <button class="bucket-btn" onclick="comingSoon(this, 'Direct Tax')">Direct Tax</button>
             <button class="bucket-btn" onclick="comingSoon(this, 'Indirect Tax')">Indirect Tax</button>
             <button class="bucket-btn" onclick="comingSoon(this, 'Finance')">Finance</button>
-            <button class="bucket-btn" onclick="openToolsWindow('others', 'Other Utilities')">Others</button>
-            <button class="bucket-btn interview-btn" onclick="openInterview()">Interview Prep 🎓</button>
+            <button class="bucket-btn" onclick="comingSoon(this, 'Others')">Others</button>
         </div>
     </section>
 </div>
 
-<div id="interviewModal" class="modal">
-    <div class="interview-content">
-        <span class="close-x" onclick="closeInterview()">&times;</span>
-        <div class="cat-selector">
-            <button class="cat-btn active" onclick="setInterviewCat('gst')">GST</button>
-            <button class="cat-btn" onclick="setInterviewCat('it')">Income Tax</button>
-            <button class="cat-btn" onclick="setInterviewCat('fin')">Finance</button>
-        </div>
-        
-        <p id="qCounter" style="color: var(--text-low); font-size: 0.75rem; margin-bottom: 10px;"></p>
-        
-        <div class="q-area">
-            <div class="q-text" id="qDisplay">Click a category to start.</div>
-        </div>
-        
-        <div class="a-area" id="aDisplay">
-            <p id="aText"></p>
-        </div>
-        
-        <div class="interview-footer">
-            <button class="reveal-btn" onclick="revealAnswer()">Reveal Answer</button>
-            <button class="next-btn" onclick="nextQuestion()">Next ⮕</button>
-        </div>
-    </div>
-</div>
-
 <script>
-    // --- INTERVIEW DATA STORAGE ---
-    const interviewData = {
-        gst: [
-            { q: "What is Input Tax Credit (ITC)?", a: "ITC allows businesses to claim credit for GST paid on purchases against their GST liability on sales." },
-            { q: "What are the four main types of GST in India?", a: "CGST, SGST, IGST, and UTGST." }
-        ],
-        it: [
-            { q: "What is the meaning of TDS?", a: "Tax Deducted at Source (TDS) is a method of collecting income tax at the time the income is generated." }
-        ],
-        fin: [
-            { q: "Explain Transfer Pricing.", a: "The value at which goods/services are transferred between related entities in different tax jurisdictions." }
-        ]
+    // --- CALENDAR & DEADLINE LOGIC ---
+    const today = new Date();
+    let currentMonth = today.getMonth(); 
+    let currentYear = today.getFullYear(); 
+
+    const taxRegistry = {
+        0: [ { d: 7, l: "TDS & TCS Payment", t: "Dec Deductions" }, { d: 11, l: "GSTR-1", t: "Dec Month" }, { d: 20, l: "GSTR-3B", t: "Dec Month" }, { d: 31, l: "TDS Filing", t: "Q3 Form 24Q/26Q" } ],
+        1: [ { d: 7, l: "TDS & TCS Payment", t: "Jan Deductions" }, { d: 11, l: "GSTR-1", t: "Jan Month" }, { d: 20, l: "GSTR-3B", t: "Jan Month" } ],
+        2: [ { d: 7, l: "TDS & TCS Payment", t: "Feb Deductions" }, { d: 11, l: "GSTR-1", t: "Feb Month" }, { d: 15, l: "Advance Tax", t: "Q4 Final" }, { d: 20, l: "GSTR-3B", t: "Feb Month" }, { d: 31, l: "Updated ITR", t: "Deadline" } ],
+        3: [ { d: 11, l: "GSTR-1", t: "Mar Month" }, { d: 20, l: "GSTR-3B", t: "Mar Month" }, { d: 30, l: "March TDS Payment", t: "Due Today" } ],
+        4: [ { d: 7, l: "TDS & TCS Payment", t: "Apr Deductions" }, { d: 11, l: "GSTR-1", t: "Apr Month" }, { d: 20, l: "GSTR-3B", t: "Apr Month" }, { d: 31, l: "TDS Filing", t: "Q4 Form 24Q/26Q" } ],
+        5: [ { d: 7, l: "TDS & TCS Payment", t: "May Deductions" }, { d: 11, l: "GSTR-1", t: "May Month" }, { d: 15, l: "Advance Tax", t: "Q1" }, { d: 20, l: "GSTR-3B", t: "May Month" } ],
+        6: [ { d: 7, l: "TDS & TCS Payment", t: "Jun Deductions" }, { d: 11, l: "GSTR-1", t: "Jun Month" }, { d: 20, l: "GSTR-3B", t: "Jun Month" }, { d: 31, l: "ITR Filing", t: "Non-Audit Cases" } ],
+        7: [ { d: 7, l: "TDS & TCS Payment", t: "Jul Deductions" }, { d: 11, l: "GSTR-1", t: "Jul Month" }, { d: 20, l: "GSTR-3B", t: "Jul Month" } ],
+        8: [ { d: 7, l: "TDS & TCS Payment", t: "Aug Deductions" }, { d: 11, l: "GSTR-1", t: "Aug Month" }, { d: 15, l: "Advance Tax", t: "Q2" }, { d: 20, l: "GSTR-3B", t: "Aug Month" }, { d: 30, l: "Tax Audit Report", t: "Due" } ],
+        9: [ { d: 7, l: "TDS & TCS Payment", t: "Sep Deductions" }, { d: 11, l: "GSTR-1", t: "Sep Month" }, { d: 20, l: "GSTR-3B", t: "Sep Month" }, { d: 31, l: "ITR Filing", t: "Audit Cases" } ],
+        10: [ { d: 7, l: "TDS & TCS Payment", t: "Oct Deductions" }, { d: 11, l: "GSTR-1", t: "Oct Month" }, { d: 20, l: "GSTR-3B", t: "Oct Month" } ],
+        11: [ { d: 7, l: "TDS & TCS Payment", t: "Nov Deductions" }, { d: 11, l: "GSTR-1", t: "Nov Month" }, { d: 15, l: "Advance Tax", t: "Q3" }, { d: 20, l: "GSTR-3B", t: "Nov Month" } ]
     };
 
-    let currentCat = 'gst';
-    let currentIdx = 0;
+    function build() {
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; } 
+        else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
 
-    function openInterview() { document.getElementById('interviewModal').style.display = 'flex'; loadQuestion(); }
-    function closeInterview() { document.getElementById('interviewModal').style.display = 'none'; }
+        const grid = document.getElementById('calendarGrid');
+        const list = document.getElementById('deadlineList');
+        const date = new Date(currentYear, currentMonth, 1);
+        document.getElementById('monthDisplay').innerText = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        
+        grid.innerHTML = '<div class="day-label">S</div><div class="day-label">M</div><div class="day-label">T</div><div class="day-label">W</div><div class="day-label">T</div><div class="day-label">F</div><div class="day-label">S</div>';
+        const monthItems = taxRegistry[currentMonth] || [];
+        list.innerHTML = '<h4 style="margin-top:0; color:var(--accent-green); font-size:0.85rem;">STATUTORY CHECKLIST</h4>';
+        
+        monthItems.forEach(i => list.innerHTML += `<div class="deadline-item" id="item-${i.d}"><strong>${i.l}</strong><br><span style="color:var(--text-low); font-size:0.75rem;">Due: ${i.d} (${i.t})</span></div>`);
 
-    function setInterviewCat(cat) {
-        currentCat = cat; currentIdx = 0;
-        document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.toggle('active', btn.textContent.toLowerCase().includes(cat)));
-        loadQuestion();
+        const start = new Date(currentYear, currentMonth, 1).getDay();
+        const len = new Date(currentYear, currentMonth + 1, 0).getDate();
+        for(let i=0; i<start; i++) grid.innerHTML += '<div></div>';
+        for(let d=1; d<=len; d++) {
+            const isH = monthItems.some(i => i.d === d);
+            grid.innerHTML += `<div class="day ${isH ? 'highlight' : ''}" ${isH ? `onclick="link(${d})"` : ''} id="date-${d}">${d}</div>`;
+        }
     }
 
-    function loadQuestion() {
-        const pool = interviewData[currentCat]; const q = pool[currentIdx];
-        document.getElementById('qDisplay').innerText = q.q;
-        document.getElementById('aDisplay').style.display = 'none';
-        document.getElementById('qCounter').innerText = `Question ${currentIdx + 1} of ${pool.length}`;
+    function changeMonth(n) { currentMonth += n; build(); }
+
+    function link(d) {
+        document.querySelectorAll('.deadline-item').forEach(el => el.classList.remove('active-deadline'));
+        const target = document.getElementById(`item-${d}`);
+        if(target) {
+            target.classList.add('active-deadline');
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
     }
 
-    function revealAnswer() {
-        document.getElementById('aText').innerText = interviewData[currentCat][currentIdx].a;
-        document.getElementById('aDisplay').style.display = 'block';
+    function handleSearch() {
+        const q = document.getElementById('toolSearchInput').value.toLowerCase().trim();
+        const res = document.getElementById('searchResults');
+        if(!q) { res.classList.remove('active'); return; }
+        res.classList.add('active');
+        // Logic for filtering search items goes here
     }
 
-    function nextQuestion() {
-        currentIdx = (currentIdx + 1) % interviewData[currentCat].length;
-        loadQuestion();
+    function comingSoon(btn, text) {
+        btn.innerText = "Coming Soon...";
+        setTimeout(() => { btn.innerText = text; }, 1500);
     }
 
-    function handleSearch() { /* ... existing search logic ... */ }
-    function openAbout() { /* ... existing about logic ... */ }
+    build();
 </script>
 </body>
 </html>
