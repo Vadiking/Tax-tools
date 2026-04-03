@@ -283,14 +283,11 @@ function buildFlat(part){
       // Map existing values first
       const rowArr = validIndices.map(idx => r._fields[idx] !== undefined ? r._fields[idx] : '');
       
-      // FIX: AUTO-SUM ENGINE
-      // If the summary row is missing "Tax Deducted" or "TDS Deposited", calculate it dynamically from subRows!
+      // FIX: AUTO-SUM ENGINE - ONLY for missing Tax Deducted and TDS Deposited
       if (r.subHeaders && r.subRows && r.subRows.length > 0) {
-         const sumAmtIdx = sH.findIndex(h => /Amount Paid|Amount Credited/i.test(h));
          const sumTaxIdx = sH.findIndex(h => /Tax Deducted/i.test(h));
          const sumTdsIdx = sH.findIndex(h => /TDS Deposited/i.test(h));
          
-         const subAmtIdx = r.subHeaders.findIndex(h => /Amount Paid|Amount Credited/i.test(h));
          const subTaxIdx = r.subHeaders.findIndex(h => /Tax Deducted/i.test(h));
          const subTdsIdx = r.subHeaders.findIndex(h => /TDS Deposited/i.test(h));
          
@@ -305,10 +302,6 @@ function buildFlat(part){
          };
 
          // Apply the calculated sum ONLY if the original text file left it blank
-         if (sumAmtIdx > -1 && (!rowArr[sumAmtIdx] || String(rowArr[sumAmtIdx]).trim() === '')) {
-            const total = getSum(subAmtIdx);
-            if(total !== null) rowArr[sumAmtIdx] = total.toFixed(2);
-         }
          if (sumTaxIdx > -1 && (!rowArr[sumTaxIdx] || String(rowArr[sumTaxIdx]).trim() === '')) {
             const total = getSum(subTaxIdx);
             if(total !== null) rowArr[sumTaxIdx] = total.toFixed(2);
