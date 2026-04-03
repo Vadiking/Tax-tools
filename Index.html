@@ -204,6 +204,7 @@
             }
             .search-container { 
                 max-width: 100%; 
+                margin-top: 10px;
             }
             .dashboard-grid { 
                 grid-template-columns: 1fr; 
@@ -217,14 +218,25 @@
                 padding: 20px; 
                 width: 95%; 
             }
-            .flip-card {
-                height: auto;
-                min-height: 600px;
-            }
             #connector-canvas {
                 display: none;
             }
-            /* --- CALENDAR MOBILE FIX (Small Boxes) --- */
+            
+            /* --- ABOUT ME MOBILE FIX --- */
+            .flip-card {
+                height: 85vh !important;
+                min-height: 400px !important;
+                max-height: 600px !important;
+            }
+            .flip-card-front, .flip-card-back {
+                padding: 25px 20px !important;
+            }
+            .contact-btn {
+                padding: 12px 10px !important;
+                font-size: 0.8rem !important;
+            }
+
+            /* --- CALENDAR MOBILE FIX --- */
             .calendar-card {
                 padding: 12px !important;
             }
