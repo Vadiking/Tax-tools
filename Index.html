@@ -155,7 +155,7 @@
         ::-webkit-scrollbar-track { background: var(--bg-pure); border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
-
+        
         /* --- MOBILE VIEW RESPONSIVENESS --- */
         @media (max-width: 900px) {
             body { 
@@ -204,7 +204,6 @@
             }
             .search-container { 
                 max-width: 100%; 
-                margin-top: 10px;
             }
             .dashboard-grid { 
                 grid-template-columns: 1fr; 
@@ -225,8 +224,39 @@
             #connector-canvas {
                 display: none;
             }
+            /* --- CALENDAR MOBILE FIX (Small Boxes) --- */
+            .calendar-card {
+                padding: 12px !important;
+            }
+            .calendar-grid {
+                gap: 4px !important;
+            }
+            .day-label {
+                font-size: 0.65rem !important;
+            }
+            .day {
+                height: 32px !important;
+                min-height: 32px !important;
+                font-size: 0.75rem !important;
+                border-radius: 6px !important;
+            }
+            .calendar-nav {
+                margin-top: 10px !important;
+                margin-bottom: 10px !important;
+                gap: 15px !important;
+            }
+            #monthDisplay {
+                font-size: 1rem !important;
+                width: auto !important;
+                min-width: 140px !important;
+            }
+            .arrow {
+                width: 30px !important;
+                height: 30px !important;
+            }
         }
 
+        /* Extra small phones */
         @media (max-width: 480px) {
             .bucket-grid { 
                 grid-template-columns: 1fr; 
