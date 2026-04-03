@@ -269,49 +269,19 @@ function buildFlat(part){
   if(part.mainTable){
     const mt=part.mainTable;
     
-    // Strict mapping arrays to prevent data shifting
+    // Exact mapping arrays to match ZIP logic perfectly
     const sH = [];
     const validIndices = [];
     mt.headers.forEach((h, i) => {
-      if(h !== '') {
-        sH.push(h);
+      if(h.trim() !== '') {
+        sH.push(h.trim());
         validIndices.push(i);
       }
     });
 
     const sR = mt.rows.map(r => {
-      // Map existing values first
-      const rowArr = validIndices.map(idx => r._fields[idx] !== undefined ? r._fields[idx] : '');
-      
-      // FIX: AUTO-SUM ENGINE - ONLY for missing Tax Deducted and TDS Deposited
-      if (r.subHeaders && r.subRows && r.subRows.length > 0) {
-         const sumTaxIdx = sH.findIndex(h => /Tax Deducted/i.test(h));
-         const sumTdsIdx = sH.findIndex(h => /TDS Deposited/i.test(h));
-         
-         const subTaxIdx = r.subHeaders.findIndex(h => /Tax Deducted/i.test(h));
-         const subTdsIdx = r.subHeaders.findIndex(h => /TDS Deposited/i.test(h));
-         
-         const getSum = (subIdx) => {
-            if(subIdx === -1) return null;
-            let total = 0;
-            r.subRows.forEach(sr => {
-               const val = parseFloat(String(sr[subIdx] || '0').replace(/,/g, ''));
-               if(!isNaN(val)) total += val;
-            });
-            return total;
-         };
-
-         // Apply the calculated sum ONLY if the original text file left it blank
-         if (sumTaxIdx > -1 && (!rowArr[sumTaxIdx] || String(rowArr[sumTaxIdx]).trim() === '')) {
-            const total = getSum(subTaxIdx);
-            if(total !== null) rowArr[sumTaxIdx] = total.toFixed(2);
-         }
-         if (sumTdsIdx > -1 && (!rowArr[sumTdsIdx] || String(rowArr[sumTdsIdx]).trim() === '')) {
-            const total = getSum(subTdsIdx);
-            if(total !== null) rowArr[sumTdsIdx] = total.toFixed(2);
-         }
-      }
-      return rowArr;
+      // Map strictly to the header indices, filling blanks correctly without calculating anything
+      return validIndices.map(idx => r._fields[idx] !== undefined ? r._fields[idx] : '');
     });
     
     out.summary={headers:sH,rows:sR};
@@ -320,7 +290,7 @@ function buildFlat(part){
     for(const r of mt.rows){if(r.subHeaders){subH=r.subHeaders;break;}}
 
     if(subH&&subH.length){
-      // Exactly 3 prefix columns for Pt 1.a (Sr. No., Name, TAN) to keep it clean
+      // Exact prefix mapping as ZIP logic
       const prefixLen = Math.min(3, sH.length); 
       const txH = [...sH.slice(0, prefixLen), ...subH];
       const txR = [];
@@ -392,15 +362,17 @@ function switchTab(key){
   document.getElementById('pane-'+key.replace(/ /g,'_')).classList.add('active');
 }
 
-function autoType(v, headerName){
+// Simple, strict Number convertor - no guessing.
+function autoType(v){
+  if(v === null || v === undefined) return '';
   if(typeof v !== 'string') return v;
   const s = v.trim();
-  if(!s) return s;
+  if(!s) return '';
 
-  // Enforce Section Codes stay Text
-  if(headerName && /section/i.test(headerName)) return s;
+  // Protect section codes (194, 194J, etc)
   if (/^\d{3}[A-Z]{0,2}$/i.test(s)) return s;
 
+  // Only convert strict numbers with commas/decimals
   if(/^-?[\d,]+(\.\d+)?$/.test(s)){
     const numStr = s.replace(/,/g, '');
     if(numStr.length > 1 && numStr.startsWith('0') && !numStr.startsWith('0.')) return s;
@@ -411,9 +383,12 @@ function autoType(v, headerName){
 }
 
 function buildSheet(headers,rows){
-  const typedRows = rows.map(r => r.map((v, i) => autoType(v, headers[i])));
-  const ws = XLSX.utils.aoa_to_sheet([headers]);
-  XLSX.utils.sheet_add_aoa(ws, typedRows, {origin:{r:1,c:0}});
+  // Map rows identically to CSV flow, just passing valid strings through autoType
+  const typedRows = rows.map(r => r.map(autoType));
+  
+  // aoa_to_sheet builds a strict grid matching headers perfectly
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...typedRows]);
+  
   const range = XLSX.utils.decode_range(ws['!ref']);
   for(let R = range.s.r + 1; R <= range.e.r; ++R){
     for(let C = range.s.c; C <= range.e.c; ++C){
@@ -422,7 +397,7 @@ function buildSheet(headers,rows){
     }
   }
   
-  const w = headers.map(h => Math.max(10, h.length + 2));
+  const w = headers.map(h => Math.max(10, String(h).length + 2));
   rows.slice(0,100).forEach(r => r.forEach((v,i) => {
     if(i < w.length) w[i] = Math.max(w[i], String(v||'').length + 2);
   }));
