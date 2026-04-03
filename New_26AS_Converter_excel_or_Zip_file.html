@@ -51,6 +51,7 @@
         #dz .icon { font-size: 3rem; margin-bottom: 15px; }
         #dz .main-txt { font-weight: 700; font-size: 1.1rem; color: var(--text-high); margin-bottom: 5px; }
         #dz .sub-txt { font-size: 0.85rem; color: var(--text-low); margin-bottom: 10px; }
+        .info-pill { display: inline-block; background: rgba(251, 191, 36, 0.1); color: var(--warning); border: 1px solid rgba(251, 191, 36, 0.2); font-size: 0.75rem; padding: 5px 12px; border-radius: 99px; font-weight: 600; }
 
         #fi { display: none; }
         #file-bar { display: none; align-items: center; gap: 15px; background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 12px; padding: 12px 20px; margin-top: 15px; }
@@ -79,8 +80,11 @@
         .btn-excel { background: var(--accent-green); color: #000; }
         .btn-excel:hover { background: #00cc6a; transform: translateY(-2px); }
         .btn-csv { background: var(--csv); color: #fff; }
+        .btn-csv:hover { opacity: 0.9; transform: translateY(-2px); }
         .btn-outline { background: transparent; color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+        .btn-outline:hover { background: rgba(0, 162, 255, 0.05); }
 
+        #info-card { display: none; }
         .ig { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
         .ig-item { background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 15px; }
         .ig-label { font-size: 0.65rem; color: var(--text-low); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
@@ -89,6 +93,7 @@
         #preview { display: none; }
         .tab-bar { display: flex; gap: 5px; overflow-x: auto; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; padding-bottom: 0; }
         .tab-btn { padding: 10px 18px; font-size: 0.8rem; font-weight: 600; color: var(--text-low); background: transparent; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: 0.2s; }
+        .tab-btn:hover { color: var(--text-high); }
         .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); background: rgba(0, 162, 255, 0.05); }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
@@ -96,7 +101,9 @@
 
         .tbl-wrap { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 10px; max-height: 450px; background: #000; }
         table.dtbl { width: 100%; border-collapse: collapse; font-size: 0.75rem; min-width: 600px; }
-        table.dtbl thead th { background: #111; color: var(--text-low); padding: 10px 15px; text-align: left; font-weight: 600; white-space: nowrap; position: sticky; top: 0; border-bottom: 1px solid var(--border-color); }
+        table.dtbl thead th { background: #111; color: var(--text-low); padding: 10px 15px; text-align: left; font-weight: 600; white-space: nowrap; position: sticky; top: 0; border-bottom: 1px solid var(--border-color); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px; }
+        table.dtbl tbody tr { border-bottom: 1px solid #111; }
+        table.dtbl tbody tr:hover { background: #0a0a0a; }
         table.dtbl tbody td { padding: 8px 15px; color: var(--text-high); border-right: 1px solid #111; white-space: nowrap; }
         .no-data { text-align: center; padding: 30px; font-style: italic; color: var(--text-low); background: #080808; border-radius: 8px; border: 1px dashed var(--border-color); }
 
@@ -126,6 +133,7 @@
             <div class="icon">📄</div>
             <div class="main-txt">Drag & drop your 26AS .txt file here</div>
             <div class="sub-txt">Supports both TRACES and IT Portal text formats.</div>
+            <div class="info-pill">💡 Files over 50,000 rows auto-switch to ZIP protocol to protect your browser.</div>
         </div>
         
         <div id="file-bar">
@@ -169,15 +177,18 @@
 </div>
 
 <script>
+// --- Configuration ---
 const ROW_THRESHOLD = 50000;
 let STATE = { meta:{}, parts:[], totalRows:0, format:'excel' };
 
+// --- UI Listeners ---
 const dz = document.getElementById('dz');
 dz.addEventListener('dragover',  e=>{e.preventDefault();dz.classList.add('over')});
 dz.addEventListener('dragleave', ()=>dz.classList.remove('over'));
 dz.addEventListener('drop', e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0])});
 document.getElementById('fi').addEventListener('change',e=>{if(e.target.files[0])loadFile(e.target.files[0])});
 
+// --- Core Logic Functions ---
 function loadFile(file){
   resetUI();
   document.getElementById('f-name').textContent=file.name;
@@ -193,8 +204,8 @@ function loadFile(file){
         let total=0;
         for(const p of parsed.parts){
           const f=buildFlat(p);
-          if(f.summary) total+=f.summary.rows.length;
-          if(f.transactions) total+=f.transactions.rows.length;
+          if(f.summary)     total+=f.summary.rows.length;
+          if(f.transactions)total+=f.transactions.rows.length;
         }
         parsed.totalRows=total;
         parsed.format = total >= ROW_THRESHOLD ? 'csv' : 'excel';
@@ -260,6 +271,7 @@ function parsePart(info,lines){
   }
   if(eH&&eR.length)res.extraTables.push({headers:eH,rows:eR});
   if(mH)res.mainTable={headers:mH,rows:mR};
+  if(!res.mainTable&&!res.extraTables.length)res.noData=true;
   return res;
 }
 
@@ -268,25 +280,21 @@ function buildFlat(part){
   if(part.mainTable){
     const mt=part.mainTable;
     const sH=mt.headers.filter(h=>h!=='');
-    const sR=mt.rows.map(r=>r._fields.filter((_,i)=>mt.headers[i]!==''));
+    
+    // FIX: Map explicitly by header length so empty trailing values (like TDS numbers) aren't dropped
+    const sR=mt.rows.map(r => {
+      return mt.headers.map((h, i) => h !== '' ? (r._fields[i] || '') : null).filter(v => v !== null);
+    });
+    
     out.summary={headers:sH,rows:sR};
-
-    let subH=null;
-    for(const r of mt.rows){if(r.subHeaders){subH=r.subHeaders;break;}}
-
+    
+    let subH=null;for(const r of mt.rows){if(r.subHeaders){subH=r.subHeaders;break;}}
     if(subH&&subH.length){
-      // Capture critical deductor info and Total TDS for Part 1
-      const dedLimit = Math.min(5, sH.length); 
-      const ded = sH.slice(0, dedLimit);
-      const txH = [...ded, ...subH];
-      const txR = [];
-
-      for (const r of mt.rows) {
-        const summaryRowData = sR[mt.rows.indexOf(r)];
-        const prefixValues = ded.map((_, i) => summaryRowData[i] || '');
-        for (const sr of r.subRows) {
-          txR.push([...prefixValues, ...sr]);
-        }
+      // Reverted exactly back to 3 prefix columns for Pt 1.a
+      const ded=sH.slice(0,Math.min(3,sH.length)),txH=[...ded,...subH],txR=[];
+      for(const r of mt.rows){
+        const dv=sH.map((h,i)=>ded.includes(h)?(sR[mt.rows.indexOf(r)][ded.indexOf(h)]||''):null).filter(v=>v!==null);
+        for(const sr of r.subRows)txR.push([...dv,...sr]);
       }
       if(txR.length)out.transactions={headers:txH,rows:txR};
     }
@@ -294,6 +302,7 @@ function buildFlat(part){
   return out;
 }
 
+// --- UI Rendering ---
 function renderAll(){
   document.getElementById('ig').innerHTML='';
   for(const[k,v]of Object.entries(STATE.meta)){
@@ -304,9 +313,17 @@ function renderAll(){
   b.className=STATE.format==='excel'?'excel':'csv';
   document.getElementById('fb-badge').textContent=STATE.format==='excel'?'✦ Safe Limit':'✦ Large File Protocol';
   
+  if(STATE.format==='excel'){
+    document.getElementById('fb-title').textContent='Generating Excel Workbook (.xlsx)';
+    document.getElementById('fb-detail').textContent=`Found ${STATE.totalRows.toLocaleString()} rows. This is within browser memory limits. All sections will be neatly organised into multiple sheets in a single file.`;
+  } else {
+    document.getElementById('fb-title').textContent='High Volume detected \u2014 Switching to ZIP Mode';
+    document.getElementById('fb-detail').textContent=`Found ${STATE.totalRows.toLocaleString()} rows. To prevent a memory crash, the tool will generate individual CSV files for every section and package them into a single high-speed ZIP archive.`;
+  }
+  
   const dlbtn = document.getElementById('dl-btn');
   dlbtn.className = STATE.format === 'excel' ? 'btn btn-excel' : 'btn btn-csv';
-  dlbtn.innerHTML = STATE.format === 'excel' ? '📥 Download Excel' : '📦 Download ZIP';
+  dlbtn.innerHTML = STATE.format === 'excel' ? '📥 Download Excel' : '📦 Download ZIP (All Sections)';
 
   const bar=document.getElementById('tab-bar'),cont=document.getElementById('tab-content');
   bar.innerHTML='';cont.innerHTML='';let first=null;
@@ -322,19 +339,27 @@ function renderAll(){
     const pane=document.createElement('div');pane.className='tab-pane';pane.id='pane-'+key.replace(/ /g,'_');
     let h=`<div class="sec-head">${esc(part.partId)} \u2014 ${esc(part.title||'')}</div>`;
     
-    if(flat.summary&&flat.summary.rows.length) h+=mkTbl('Summary',flat.summary.headers,flat.summary.rows);
-    if(flat.transactions&&flat.transactions.rows.length) h+=mkTbl('Details',flat.transactions.headers,flat.transactions.rows);
+    const shortId = part.partId.replace('PART ', 'Pt ');
+    let hasData = false;
+
+    if(flat.summary&&flat.summary.rows.length){ h+=mkTbl(shortId + ' Summary (Aggregated)',flat.summary.headers,flat.summary.rows); hasData=true; }
+    if(flat.transactions&&flat.transactions.rows.length){ h+=mkTbl(shortId + '.a (Specific Transaction Details)',flat.transactions.headers,flat.transactions.rows); hasData=true; }
+    
+    if(!hasData){
+      h += `<div class="no-data">No transactions found in this section for the current period.</div>`;
+    }
     
     pane.innerHTML=h; cont.appendChild(pane);
     if(!first)first=key;
   }
   if(first)switchTab(first);
+
   ['info-card','format-banner','preview','actions'].forEach(id=>document.getElementById(id).style.display='block');
 }
 
 function mkTbl(label,hdrs,rows){
   const shown=rows.slice(0,300);
-  let h=`<div style="font-size:0.75rem; font-weight:700; color:var(--text-low); margin:15px 0 8px;">${esc(label)}</div>`;
+  let h=`<div style="font-size:0.75rem; font-weight:700; color:var(--text-low); margin:15px 0 8px; text-transform: uppercase;">${esc(label)}</div>`;
   h+=`<div class="tbl-wrap"><table class="dtbl"><thead><tr>${hdrs.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>`;
   h+=shown.map(r=>`<tr>${hdrs.map((_,i)=>`<td>${esc(r[i]||'')}</td>`).join('')}</tr>`).join('');
   return h+`</tbody></table></div>`;
@@ -347,14 +372,17 @@ function switchTab(key){
   document.getElementById('pane-'+key.replace(/ /g,'_')).classList.add('active');
 }
 
+// --- Export Logic ---
+function doDownload(){ STATE.format==='excel' ? doExcel() : doZip(); }
+
 function autoType(v){
   if(typeof v !== 'string') return v;
   const s = v.trim();
   if(!s) return s;
-
-  // Protect Section codes (e.g., 194, 194J) from being converted to numbers
+  
+  // FIX: Force Section Codes (e.g. 194, 194J, 192) to remain Text
   if (/^\d{3}[A-Z]?$/.test(s)) return s;
-
+  
   if(/^-?[\d,]+(\.\d+)?$/.test(s)){
     const numStr = s.replace(/,/g, '');
     if(numStr.length > 1 && numStr.startsWith('0') && !numStr.startsWith('0.')) return s;
@@ -375,14 +403,18 @@ function buildSheet(headers,rows){
       if(cell && cell.t === 'n') cell.z = '#,##0.00'; 
     }
   }
+  const w = headers.map(h => Math.max(10, h.length + 2));
+  rows.slice(0,100).forEach(r => r.forEach((v,i) => {
+    if(i < w.length) w[i] = Math.max(w[i], String(v||'').length + 2);
+  }));
+  ws['!cols'] = w.map(v => ({wch: Math.min(v, 100)})); 
   return ws;
 }
-
-function doDownload(){ STATE.format==='excel' ? doExcel() : doZip(); }
 
 function doExcel(){
   const wb=XLSX.utils.book_new();
   const wsI=XLSX.utils.aoa_to_sheet([['Field','Value'],...Object.entries(STATE.meta)]);
+  wsI['!cols']=[{wch:35},{wch:55}];
   XLSX.utils.book_append_sheet(wb,wsI,'Taxpayer Info');
 
   for(const part of STATE.parts){
@@ -395,34 +427,40 @@ function doExcel(){
   XLSX.writeFile(wb,`26AS_${pan}.xlsx`);
 }
 
+function csvEsc(v){const s=String(v==null?'':v);return(s.includes(',')||s.includes('"')||s.includes('\n')||s.includes('\r'))?'"'+s.replace(/"/g,'""')+'"':s;}
+function toCSV(headers,rows){
+  const lines=new Array(rows.length+1);
+  lines[0]=headers.map(csvEsc).join(',');
+  for(let i=0;i<rows.length;i++)lines[i+1]=rows[i].map(csvEsc).join(',');
+  return '\uFEFF'+lines.join('\r\n');
+}
+
 async function doZip(){
   const btn=document.getElementById('dl-btn');
-  btn.disabled=true; btn.textContent='Compressing...';
-  try {
+  btn.disabled=true; btn.textContent='Compressing Archive...';
+  try{
     const zip=new JSZip();
     const pan=(STATE.meta['Permanent Account Number (PAN)']||'UNKNOWN').replace(/[^A-Z0-9]/gi,'');
     const folder=zip.folder(`26AS_${pan}`);
+    folder.file('Taxpayer_Info.csv',toCSV(['Field','Value'],Object.entries(STATE.meta)));
     for(const part of STATE.parts){
       const flat=buildFlat(part);
       const fileId = part.partId.replace(/ /g, '_'); 
       if(flat.summary&&flat.summary.rows.length) folder.file(fileId + '_Summary.csv', toCSV(flat.summary.headers, flat.summary.rows));
       if(flat.transactions&&flat.transactions.rows.length) folder.file(fileId + '_a_Details.csv', toCSV(flat.transactions.headers, flat.transactions.rows));
     }
-    const blob=await zip.generateAsync({type:'blob'});
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a'); a.href=url; a.download=`26AS_${pan}.zip`;
-    a.click();
-  } catch(e) { alert(e.message); }
-  btn.disabled=false; btn.textContent='📦 Download ZIP';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),10000);
+  }catch(ex){ alert('ZIP Export Failure: '+ex.message); }
+  btn.disabled=false; btn.textContent='📥 Download ZIP (All Sections)';
 }
 
-function toCSV(h,r){
-  const esc = v => '"' + String(v).replace(/"/g, '""') + '"';
-  return [h.map(esc).join(','), ...r.map(row => row.map(esc).join(','))].join('\n');
-}
-
-function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function fmtSz(b){return b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB'}
+// --- UI Helpers ---
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtSz(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB'}
 function showProg(p,l){document.getElementById('prog-wrap').style.display='block';document.getElementById('prog-bar').style.width=p+'%';document.getElementById('prog-lbl').textContent=l;}
 function hideProg(){document.getElementById('prog-wrap').style.display='none';}
 function showErr(m){const e=document.getElementById('err');e.textContent='⚠️ '+m;e.style.display='block';}
